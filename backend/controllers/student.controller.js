@@ -6,26 +6,6 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import {asyncHandler} from "../utils/asyncHandler.js";
 
-// Mock challenge data
-const mockChallenges = [
-    {
-        id: "1",
-        title: "AI Ethics Challenge",
-        description: "Discuss ethical concerns in AI.",
-        deadline: "2025-03-25",
-        reference_materials: ["https://example.com/ai-ethics.pdf"]
-    },
-    {
-        id: "2",
-        title: "Climate Change Hack",
-        description: "Innovate to fight climate change.",
-        deadline: "2025-04-01",
-        reference_materials: ["https://example.com/climate.pdf"]
-    }
-];
-
-// Mock submissions
-let mockSubmissions = [];
 
 export const getAllChallenges = asyncHandler(async (req, res) => {
     // Optionally, can add filtering logic based on student criteria.
@@ -70,7 +50,6 @@ export const submitChallenge = asyncHandler(async (req, res) => {
       throw new ApiError(400, "File path is required");
     }
   
-    // Create a new submission with default values for extra fields
     const submission = await Submission.create({
       student_id,
       challenge_id: challengeId,
