@@ -77,3 +77,46 @@ export const getStudentSubmissions = asyncHandler(async (req, res) => {
     const submissions = await Submission.find({ student_id });
     return res.status(200).json(new ApiResponse(200, submissions, "Submissions fetched successfully"));
 });
+
+export const getMySubmissionForChallenge = asyncHandler(async (req, res) => {
+    // const studentId = req.user._id;
+    // const { studentId } = req.body;
+    const { student_id } = req.query;
+    const { challengeId } = req.params;
+  
+    if (!mongoose.Types.ObjectId.isValid(challengeId)) {
+      throw new ApiError(400, "Invalid challenge ID");
+    }
+    if (!mongoose.Types.ObjectId.isValid(student_id)) {
+        throw new ApiError(400, "Invalid Student ID");
+    }
+    const submission = await Submission.findOne({
+      student_id: student_id,
+      challenge_id: challengeId
+    }).populate({
+      path: "challenge_id",
+      select: "title description rubric"
+    });
+  
+    if (!submission) {
+      throw new ApiError(404, "No submission found for this challenge");
+    }
+  
+    return res.status(200).json(
+      new ApiResponse(200, {
+        _id: submission._id,
+        file_path: submission.file_path,
+        extracted_text: submission.extracted_text,
+        summary: submission.summary,
+        ai_scores: submission.ai_scores,
+        teacher_scores: submission.teacher_scores,
+        final_score: submission.final_score,
+        classification: submission.classification,
+        status: submission.status,
+        challenge: submission.challenge_id, // populated object
+        createdAt: submission.createdAt,
+        updatedAt: submission.updatedAt
+      }, "Submission for challenge retrieved")
+    );
+  });
+  
