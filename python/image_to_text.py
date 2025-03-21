@@ -7,8 +7,8 @@ Original file is located at
     https://colab.research.google.com/drive/1ZRP_M4B9IhQdOyd-Zg76_ALs2R3Jx15J
 """
 
-!apt install -q tesseract-ocr
-!pip install -q pytesseract transformers torch pillow
+# !apt install -q tesseract-ocr
+# !pip install -q pytesseract transformers torch pillow
 
 import os
 import time
