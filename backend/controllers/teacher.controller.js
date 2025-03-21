@@ -8,18 +8,11 @@ import {Rubric} from "../models/rubric.model.js"
 import {Submission} from "../models/submission.model.js"
 
 export const getChallenges = asyncHandler(async (req, res) => {
-    //const teacherId = req.user._id;
-    const teacherId = "67dd0498f2296179d2e50f22";
-    if (!teacherId)
-    {
-        throw new ApiError(400, "User ID is required");
-    }
-    const challenges = await Challenge.find({ created_by: teacherId });
+    const challenges = await Challenge.find();
     return res.status(200).json(new ApiResponse(200, challenges));
 });
 
 export const createChallenge = asyncHandler(async (req, res) => {
-    //const teacherId = req.user._id;
     const teacherId = new mongoose.Types.ObjectId();
     if (!teacherId)
     {
@@ -51,11 +44,6 @@ export const createChallenge = asyncHandler(async (req, res) => {
 });
 
 export const getSubmissions = asyncHandler(async (req, res) => {
-    const teacherId = req.user._id;
-    if (!teacherId)
-    {
-        throw new ApiError(400, "User ID is required");
-    }
     const challengeId = req.params.challengeId;
     if (!challengeId)
     {
@@ -85,7 +73,6 @@ export const getSpecificSubmission = asyncHandler(async (req, res) => {
 });
 
 export const evaluateSubmission = asyncHandler(async (req, res) => {
-    // const teacherId = req.user._id;
     const {submissionId, challengeId, score} = req.body;
     if (!submissionId || !challengeId || !score)
     {
@@ -140,4 +127,35 @@ export const evaluateSubmission = asyncHandler(async (req, res) => {
         message: "Submission graded successfully",
         data: updatedSubmission
     });
+});
+
+export const getChallengeAnalytics = asyncHandler(async (req, res) => {
+    const { challengeId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(challengeId)) {
+        throw new ApiError(400, "Invalid Challenge ID");
+    }
+
+    const challenge = await Challenge.findById(challengeId);
+    if (!challenge) {
+        throw new ApiError(404, "Challenge not found");
+    }
+
+    const totalSubmissions = await Submission.countDocuments({ challenge_id: challengeId });
+
+    const classificationCounts = await Submission.aggregate([
+        { $match: { challenge_id: new mongoose.Types.ObjectId(challengeId) } },
+        { $group: { _id: "$classification", count: { $sum: 1 } } }
+    ]);
+
+    let scoreDistribution = { low: 0, medium: 0, high: 0 };
+    classificationCounts.forEach(({ _id, count }) => {
+        if (_id) scoreDistribution[_id] = count;
+    });
+
+    return res.status(200).json(new ApiResponse(200, {
+        challengeId,
+        totalSubmissions,
+        scoreDistribution
+    }));
 });
