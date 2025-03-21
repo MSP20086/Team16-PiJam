@@ -14,10 +14,8 @@ app.use(express.urlencoded({extended: true, limit: "16kb"}))
 app.use(express.static("public"))
 app.use(cookieParser())
 
-// //routes declaration
-// add API endpoints here
-// For e.g.
-// app.use("/api/v1/healthcheck", healthcheckRouter)
-// // http://localhost:8000/api/v1/users/register
+import teacherRouter from "./routes/teacher.routes.js"
+
+app.use("/api/teacher", teacherRouter)
 
 export { app }
