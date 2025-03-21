@@ -5,7 +5,8 @@ import {
     getSubmissions,
     getSpecificSubmission,
     evaluateSubmission,
-    getChallengeAnalytics
+    getChallengeAnalytics,
+    getSpecificChallenge
 } from "../controllers/teacher.controller.js"
 
 
@@ -17,5 +18,6 @@ router.get(":challengeId/submissions", getSubmissions);
 router.get("/submissions/:submissionId", getSpecificSubmission);
 router.post("/submission/evaluate", evaluateSubmission);
 router.get("/analytics/:challengeId", getChallengeAnalytics);
+router.get("/challenge/:challengeId", getSpecificChallenge);
 
 export default router

@@ -12,6 +12,27 @@ export const getChallenges = asyncHandler(async (req, res) => {
     return res.status(200).json(new ApiResponse(200, challenges));
 });
 
+export const getSpecificChallenge = asyncHandler(async (req, res) => {
+    const challengeId = req.params.challengeId;
+    if (!challengeId) {
+        throw new ApiError(400, "Challenge ID is required");
+    }
+
+    const challenge = await Challenge.findById(challengeId);
+    if (!challenge) {
+        throw new ApiError(404, "Challenge not found");
+    }
+
+    const rubric = await Rubric.findById(challenge.rubric_id);
+    if (!rubric) {
+        throw new ApiError(404, "Rubric not found");
+    }
+    const challengeObj = challenge.toObject();
+    challengeObj.rubric = rubric;
+
+    return res.status(200).json(new ApiResponse(200, challengeObj));
+});
+
 export const createChallenge = asyncHandler(async (req, res) => {
     const teacherId = new mongoose.Types.ObjectId();
     if (!teacherId)
