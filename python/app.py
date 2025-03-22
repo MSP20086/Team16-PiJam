@@ -1,5 +1,4 @@
 from flask import Flask, jsonify, request, Blueprint
-import os
 import json
 from models.image_to_text import process_image
 from models.speech_to_text import process_audio
