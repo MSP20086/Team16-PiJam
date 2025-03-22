@@ -1,10 +1,13 @@
-from flask import Blueprint, request, jsonify
+import json
+import os
 import torch
 import librosa
 import numpy as np
 import io
+from flask import Blueprint, request, jsonify
 from transformers import AutoModelForSpeechSeq2Seq, AutoProcessor, pipeline
 from models.summarization import summarize_text
+from models.evaluation import evaluate_solution
 
 audio_bp = Blueprint("audio_transcription", __name__)
 
@@ -33,19 +36,24 @@ def predict_audio():
     if "audio" not in request.files:
         return jsonify({"error": "No audio file provided"}), 400
 
+    if "problem_statement" not in request.form:
+        return jsonify({"error": "No problem statement provided"}), 400
+
+    if "rubric" not in request.form:
+        return jsonify({"error": "No evaluation rubric provided"}), 400
+
+    try:
+        rubric = json.loads(request.form["rubric"])  
+    except json.JSONDecodeError:
+        return jsonify({"error": "Invalid rubric format. Must be valid JSON."}), 400
+
     audio_file = request.files["audio"]
     try:
         audio_bytes = audio_file.read()
-        audio, sr = librosa.load(
-            io.BytesIO(audio_bytes),
-            sr=16000,
-            mono=True,
-            duration=300 
-        )
+        audio, sr = librosa.load(io.BytesIO(audio_bytes), sr=16000, mono=True, duration=300)
     except Exception as e:
         return jsonify({"error": f"Audio processing failed: {str(e)}"}), 400
 
-    # Split audio into 30-second chunks
     chunk_size = 30 * sr
     chunks = []
     for i in range(0, len(audio), chunk_size):
@@ -57,13 +65,10 @@ def predict_audio():
     if not chunks:
         return jsonify({"error": "Empty audio file"}), 400
 
+
     with torch.no_grad():
         try:
-            results = asr_pipe(
-                chunks,
-                batch_size=8 if torch.cuda.is_available() else 2,
-                return_timestamps=False
-            )
+            results = asr_pipe(chunks, batch_size=8 if torch.cuda.is_available() else 2, return_timestamps=False)
         except RuntimeError as e:
             if 'CUDA out of memory' in str(e):
                 return jsonify({"error": "GPU memory exhausted, try shorter audio"}), 413
@@ -71,8 +76,18 @@ def predict_audio():
 
     transcription = " ".join([result["text"] for result in results])
     summary = summarize_text(transcription)
+    problem_statement = request.form["problem_statement"]
+
+    api_key = os.getenv("GEMINI_API_KEY")
+    evaluation_result = evaluate_solution(
+        problem_statement=problem_statement,
+        solution=summary,
+        rubric=rubric,
+        api_key=api_key
+    )
 
     return jsonify({
         "transcription": transcription.strip(),
-        "summary": summary.strip()
+        "summary": summary.strip(),
+        "evaluation": evaluation_result
     })

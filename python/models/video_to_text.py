@@ -11,6 +11,9 @@ from PIL import Image
 from transformers import AutoModelForSpeechSeq2Seq, AutoProcessor, pipeline
 from moviepy import VideoFileClip  
 from models.summarization import summarize_text
+from models.evaluation import evaluate_solution
+import json
+
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 DEVICE_IDX = 0 if torch.cuda.is_available() else -1
@@ -89,6 +92,17 @@ class VideoProcessor:
 def process_video():
     if "video" not in request.files:
         return jsonify({"error": "No video file provided"}), 400
+    
+    if "problem_statement" not in request.form:
+        return jsonify({"error": "No problem statement provided"}), 400
+
+    if "rubric" not in request.form:
+        return jsonify({"error": "No evaluation rubric provided"}), 400
+
+    try:
+        rubric = json.loads(request.form["rubric"])  
+    except json.JSONDecodeError:
+        return jsonify({"error": "Invalid rubric format. Must be valid JSON."}), 400
 
     video_file = request.files["video"]
     video_path = f"./uploads/{video_file.filename}"
@@ -130,11 +144,20 @@ def process_video():
 
     text_summary = summarize_text(extracted_text)
     audio_summary = summarize_text(transcript)
+    problem_statement = request.form["problem_statement"]
+    api_key = os.getenv("GEMINI_API_KEY")
+    evaluation_result = evaluate_solution(
+        problem_statement=problem_statement,
+        solution=text_summary + "\n" + audio_summary,
+        rubric=rubric,
+        api_key=api_key
+    )
 
     os.remove(video_path)
     return jsonify({
         "extracted_text": extracted_text,
         "text_summary": text_summary,
         "transcription": transcript,
-        "audio_summary": audio_summary
+        "audio_summary": audio_summary,
+        "evaluation": evaluation_result
     })
