@@ -1,23 +1,23 @@
-from flask import Blueprint, request, jsonify
 import os
 import cv2
 import pytesseract
-pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 import numpy as np
 import torch
 import librosa
 import threading
+import json
+import io
 from PIL import Image
-from transformers import AutoModelForSpeechSeq2Seq, AutoProcessor, pipeline
 from moviepy import VideoFileClip  
+from transformers import AutoModelForSpeechSeq2Seq, AutoProcessor, pipeline
+from flask import jsonify
 from models.summarization import summarize_text
 from models.evaluation import evaluate_solution
-import json
 
+pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 DEVICE_IDX = 0 if torch.cuda.is_available() else -1
-
 model_id = "openai/whisper-tiny.en"
 asr_model = AutoModelForSpeechSeq2Seq.from_pretrained(model_id).to(DEVICE)
 processor = AutoProcessor.from_pretrained(model_id)
@@ -29,8 +29,6 @@ asr_pipe = pipeline(
     torch_dtype=torch.float16 if torch.cuda.is_available() else torch.float32,
     device=DEVICE_IDX
 )
-
-video_bp = Blueprint("video_processing", __name__)
 
 class OCRProcessor:
     def preprocess_image(self, image):
@@ -46,7 +44,6 @@ class OCRProcessor:
         config = "--psm 6 --oem 3"
         text = pytesseract.image_to_string(Image.fromarray(processed_image), config=config).strip()
         return text if text else None
-
 
 class VideoProcessor:
     def __init__(self, video_path, frame_skip=10, threshold=30):
@@ -83,32 +80,16 @@ class VideoProcessor:
         audio_path = "./temp_audio.wav"
         try:
             video = VideoFileClip(self.video_path)
-            video.audio.write_audiofile(audio_path, codec="pcm_s16le")
+            video.audio.write_audiofile(audio_path, codec="pcm_s16le", logger=None)
             return audio_path
         except Exception as e:
             return str(e)
 
-@video_bp.route("/video", methods=["POST"])
-def process_video():
-    if "video" not in request.files:
-        return jsonify({"error": "No video file provided"}), 400
-    
-    if "problem_statement" not in request.form:
-        return jsonify({"error": "No problem statement provided"}), 400
-
-    if "rubric" not in request.form:
-        return jsonify({"error": "No evaluation rubric provided"}), 400
-
-    try:
-        rubric = json.loads(request.form["rubric"])  
-    except json.JSONDecodeError:
-        return jsonify({"error": "Invalid rubric format. Must be valid JSON."}), 400
-
-    video_file = request.files["video"]
-    video_path = f"./uploads/{video_file.filename}"
+def process_video(file, problem_statement, rubric):
     os.makedirs("./uploads", exist_ok=True)
-    video_file.save(video_path)
-
+    video_path = os.path.join("./uploads", file.filename)
+    file.save(video_path)
+    
     processor_instance = VideoProcessor(video_path, frame_skip=15, threshold=35)
     extracted_text, transcript = "", ""
 
@@ -120,7 +101,11 @@ def process_video():
         nonlocal transcript
         audio_file = processor_instance.extract_audio()
         if isinstance(audio_file, str) and "Error" not in audio_file:
-            audio, sr = librosa.load(audio_file, sr=16000, mono=True)
+            try:
+                audio, sr = librosa.load(audio_file, sr=16000, mono=True)
+            except Exception as e:
+                transcript = f"Error processing audio: {str(e)}"
+                return
             samples_per_chunk = 30 * sr
             num_chunks = len(audio) // samples_per_chunk + (1 if len(audio) % samples_per_chunk else 0)
             chunks = []
@@ -130,11 +115,12 @@ def process_video():
                 if len(chunk) < samples_per_chunk:
                     pad_width = samples_per_chunk - len(chunk)
                     chunk = np.pad(chunk, (0, pad_width), mode='constant')
-                chunks.append(chunk) 
+                chunks.append(chunk)
             results = asr_pipe(chunks)
             transcript = " ".join(result["text"] for result in results if "text" in result)
             os.remove(audio_file)
     
+    # Run OCR and ASR concurrently.
     ocr_thread = threading.Thread(target=ocr_task)
     asr_thread = threading.Thread(target=asr_task)
     ocr_thread.start()
@@ -144,7 +130,6 @@ def process_video():
 
     text_summary = summarize_text(extracted_text)
     audio_summary = summarize_text(transcript)
-    problem_statement = request.form["problem_statement"]
     api_key = os.getenv("GEMINI_API_KEY")
     evaluation_result = evaluate_solution(
         problem_statement=problem_statement,
@@ -154,10 +139,11 @@ def process_video():
     )
 
     os.remove(video_path)
-    return jsonify({
+    
+    return {
         "extracted_text": extracted_text,
         "text_summary": text_summary,
         "transcription": transcript,
         "audio_summary": audio_summary,
         "evaluation": evaluation_result
-    })
+    }
