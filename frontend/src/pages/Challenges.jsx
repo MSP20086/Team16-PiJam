@@ -3,64 +3,64 @@ import { Link } from "react-router-dom";
 
 function Challenges() {
   // Dummy challenges data with all required fields and realistic image URLs
-  const dummyChallenges = [
-    {
-      _id: "6405a9c1b89d423f8c242255",
-      title: "AI Ethics Challenge",
-      description: "Develop a framework addressing ethical concerns in AI applications for healthcare, focusing on privacy, bias, and transparency.",
-      deadline: "2025-03-25T23:59:59Z",
-      rubric_id: "6405a9c1b89d423f8c242111",
-      created_at: "2025-03-18T10:00:00Z",
-      submissions: ["6405a9c1b89d423f8c242001", "6405a9c1b89d423f8c242002"],
-      reference_materials: ["https://ethics.ai/resource1", "https://ethics.ai/resource2"],
-      criteria: { mid: 75, high: 90 },
-      difficulty: "Advanced",
-      category: "Ethics & Society",
-      image: "/api/placeholder/400/200"
-    },
-    {
-      _id: "6405a9c1b89d423f8c242256",
-      title: "Machine Learning Hackathon",
-      description: "Build an ML model to predict crop yields based on climate data, helping farmers make informed decisions in challenging conditions.",
-      deadline: "2025-04-10T23:59:59Z",
-      rubric_id: "6405a9c1b89d423f8c242112",
-      created_at: "2025-03-15T08:30:00Z",
-      submissions: ["6405a9c1b89d423f8c242003"],
-      reference_materials: ["https://ml.org/resource1", "https://ml.org/resource2"],
-      criteria: { mid: 70, high: 85 },
-      difficulty: "Intermediate",
-      category: "Machine Learning",
-      image: "/api/placeholder/400/200"
-    },
-    {
-      _id: "6405a9c1b89d423f8c242257",
-      title: "Web Development Sprint",
-      description: "Create an accessible web application that helps connect local volunteers with community service opportunities in real-time.",
-      deadline: "2025-03-30T23:59:59Z",
-      rubric_id: "6405a9c1b89d423f8c242113",
-      created_at: "2025-03-10T14:15:00Z",
-      submissions: [],
-      reference_materials: ["https://webdev.org/resource1", "https://accessibility.org/guide"],
-      criteria: { mid: 65, high: 80 },
-      difficulty: "Beginner",
-      category: "Web Development",
-      image: "/api/placeholder/400/200"
-    },
-    {
-      _id: "6405a9c1b89d423f8c242258",
-      title: "Natural Language Processing Challenge",
-      description: "Develop a sentiment analysis tool for social media posts that can identify emotional nuances across multiple languages.",
-      deadline: "2025-04-15T23:59:59Z",
-      rubric_id: "6405a9c1b89d423f8c242114",
-      created_at: "2025-03-05T09:00:00Z",
-      submissions: ["6405a9c1b89d423f8c242004", "6405a9c1b89d423f8c242005"],
-      reference_materials: ["https://nlp.org/resource1", "https://linguistics.org/guide"],
-      criteria: { mid: 80, high: 95 },
-      difficulty: "Advanced",
-      category: "Natural Language Processing",
-      image: "/api/placeholder/400/200"
-    }
-  ];
+  // const dummyChallenges = [
+  //   {
+  //     _id: "6405a9c1b89d423f8c242255",
+  //     title: "AI Ethics Challenge",
+  //     description: "Develop a framework addressing ethical concerns in AI applications for healthcare, focusing on privacy, bias, and transparency.",
+  //     deadline: "2025-03-25T23:59:59Z",
+  //     rubric_id: "6405a9c1b89d423f8c242111",
+  //     created_at: "2025-03-18T10:00:00Z",
+  //     submissions: ["6405a9c1b89d423f8c242001", "6405a9c1b89d423f8c242002"],
+  //     reference_materials: ["https://ethics.ai/resource1", "https://ethics.ai/resource2"],
+  //     criteria: { mid: 75, high: 90 },
+  //     difficulty: "Advanced",
+  //     category: "Ethics & Society",
+  //     image: "/api/placeholder/400/200"
+  //   },
+  //   {
+  //     _id: "6405a9c1b89d423f8c242256",
+  //     title: "Machine Learning Hackathon",
+  //     description: "Build an ML model to predict crop yields based on climate data, helping farmers make informed decisions in challenging conditions.",
+  //     deadline: "2025-04-10T23:59:59Z",
+  //     rubric_id: "6405a9c1b89d423f8c242112",
+  //     created_at: "2025-03-15T08:30:00Z",
+  //     submissions: ["6405a9c1b89d423f8c242003"],
+  //     reference_materials: ["https://ml.org/resource1", "https://ml.org/resource2"],
+  //     criteria: { mid: 70, high: 85 },
+  //     difficulty: "Intermediate",
+  //     category: "Machine Learning",
+  //     image: "/api/placeholder/400/200"
+  //   },
+  //   {
+  //     _id: "6405a9c1b89d423f8c242257",
+  //     title: "Web Development Sprint",
+  //     description: "Create an accessible web application that helps connect local volunteers with community service opportunities in real-time.",
+  //     deadline: "2025-03-30T23:59:59Z",
+  //     rubric_id: "6405a9c1b89d423f8c242113",
+  //     created_at: "2025-03-10T14:15:00Z",
+  //     submissions: [],
+  //     reference_materials: ["https://webdev.org/resource1", "https://accessibility.org/guide"],
+  //     criteria: { mid: 65, high: 80 },
+  //     difficulty: "Beginner",
+  //     category: "Web Development",
+  //     image: "/api/placeholder/400/200"
+  //   },
+  //   {
+  //     _id: "6405a9c1b89d423f8c242258",
+  //     title: "Natural Language Processing Challenge",
+  //     description: "Develop a sentiment analysis tool for social media posts that can identify emotional nuances across multiple languages.",
+  //     deadline: "2025-04-15T23:59:59Z",
+  //     rubric_id: "6405a9c1b89d423f8c242114",
+  //     created_at: "2025-03-05T09:00:00Z",
+  //     submissions: ["6405a9c1b89d423f8c242004", "6405a9c1b89d423f8c242005"],
+  //     reference_materials: ["https://nlp.org/resource1", "https://linguistics.org/guide"],
+  //     criteria: { mid: 80, high: 95 },
+  //     difficulty: "Advanced",
+  //     category: "Natural Language Processing",
+  //     image: "/api/placeholder/400/200"
+  //   }
+  // ];
 
   const [challenges, setChallenges] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -68,23 +68,20 @@ function Challenges() {
   const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
-    // Simulate API call with dummy data
-    setTimeout(() => {
-      setChallenges(dummyChallenges);
-      setLoading(false);
-    }, 800);
-    
-    // In real application, you would use:
-    // fetch("/api/challenges")
-    //   .then((res) => res.json())
-    //   .then((data) => {
-    //     setChallenges(data);
-    //     setLoading(false);
-    //   })
-    //   .catch(err => {
-    //     console.error("Error fetching challenges:", err);
-    //     setLoading(false);
-    //   });
+    const fetchChallenges = async () => {
+      try {
+        const response = await fetch("http://localhost:8000/api/student/challenges");
+        if (!response.ok) throw new Error("Failed to fetch challenges");
+        const data = await response.json();
+        setChallenges(data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchChallenges();
   }, []);
 
   // Handle search and filtering
@@ -437,4 +434,4 @@ function Challenges() {
   );
 }
 
-export default Challenges;
+export default Challenges;  
