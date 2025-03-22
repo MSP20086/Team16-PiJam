@@ -1,5 +1,7 @@
 // backend/controllers/student.controller.js
 import mongoose from "mongoose";
+import axios from "axios";
+
 import { Challenge } from "../models/challenge.model.js";
 import { Submission } from "../models/submission.model.js";
 import { ApiError } from "../utils/ApiError.js";
@@ -27,7 +29,13 @@ export const getChallengeById = asyncHandler(async (req, res) => {
 
 export const submitChallenge = asyncHandler(async (req, res) => {
     const { challengeId } = req.params;
-    const { student_id, file_path } = req.body;
+    const { student_id, file_path} = req.body;
+    const challenge = await Challenge.findById(challengeId).populate("rubric_id");
+    if (!challenge){
+      throw new ApiError(404, "Challenge not found");
+    }
+    const problem_statement = challenge.description;
+    const rubric = challenge.rubric_id;
     // student_id = req.user._id;
     // const student_id = new mongoose.Types.ObjectId();
     // const  {file_path}=req.body;
@@ -49,6 +57,14 @@ export const submitChallenge = asyncHandler(async (req, res) => {
     if (!file_path) {
       throw new ApiError(400, "File path is required");
     }
+
+     
+    if (!problem_statement) {
+      throw new ApiError(400, "Problem statement is required");
+    }
+    if (!rubric) {
+      throw new ApiError(400, "Rubric is required");
+    }
   
     const submission = await Submission.create({
       student_id,
@@ -62,10 +78,52 @@ export const submitChallenge = asyncHandler(async (req, res) => {
       summary: "",
       status: "pending"
     });
+    let evaluationEndpoint = "http://localhost:5000/evaluate";
+    // if (file_type === "image") {
+    //   evaluationEndpoint = "http://localhost:5000/evaluate/image";
+    // } else if (file_type === "audio") {
+    //   evaluationEndpoint = "http://localhost:5000/evaluate/speech";
+    // } else if (file_type === "video") {
+    //   evaluationEndpoint = "http://localhost:5000/evaluate/video";
+    // } else {
+    //   // Optional: if unknown file type, you may choose a default or throw an error.
+    //   throw new ApiError(400, "Unsupported file type for evaluation");
+    // }
+    const payload = {
+      file_url: file_path,
+      problem_statement,
+      rubric
+    };
+    try {
+      // Call the Flask evaluation endpoint
+      const evaluationResponse = await axios.post(evaluationEndpoint, payload, {
+        headers: { "Content-Type": "application/json" }
+      });
+      const evalData = evaluationResponse.data;
   
-    return res.status(201).json(
-      new ApiResponse(201, submission, "Submission uploaded successfully")
-    );
+      // Update submission with evaluation results
+      const updatedSubmission = await Submission.findByIdAndUpdate(
+        submission._id,
+        {
+          extracted_text: evalData.transcription || "",
+          summary: evalData.summary || "",
+          ai_scores: evalData.evaluation || {},
+          final_score: evalData.final_score || 0,
+          classification: evalData.classification || "low",
+          status: "evaluated"
+        },
+        { new: true }
+      );
+  
+      return res.status(201).json(new ApiResponse(201, updatedSubmission, "Submission uploaded and evaluated successfully"));
+    } catch (error) {
+      console.error("Evaluation error:", error.message);
+      // Return the submission without evaluation updates if the call fails
+      return res.status(201).json(new ApiResponse(201, submission, "Submission uploaded, but evaluation failed"));
+    }
+
+  
+     
 });
 
 export const getStudentSubmissions = asyncHandler(async (req, res) => {
