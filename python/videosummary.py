@@ -165,15 +165,15 @@ def run_parallel(video_path):
     text_summary = summarize_text(extracted_text)
     audio_summary = summarize_text(transcript)
 
-    print("\n📝 Extracted Visual Text:")
+    print("\nExtracted Visual Text:")
     print(extracted_text)
-    print("\n📌 Summary of Visual Text:")
+    print("\nSummary of Visual Text:")
     print(text_summary)
-    print("\n🎤 Full Audio Transcript:")
+    print("\nFull Audio Transcript:")
     print(transcript)
-    print("\n🔹 Summary of Audio:")
+    print("\nSummary of Audio:")
     print(audio_summary)
-    print("\n⏳ Total Time Taken:", round(time.time() - start_time, 2), "seconds")
+    print("\nTotal Time Taken:", round(time.time() - start_time, 2), "seconds")
 
 # Run the processing
 video_file = "example.mp4"
