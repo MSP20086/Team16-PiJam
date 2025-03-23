@@ -12,98 +12,108 @@ function ChallengeDetail() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // For demo purposes, creating a dummy fetch function similar to the Challenges component
-    axios.get(`http://localhost:5000/api/student/challenges/${id}`,{params:{challengeId:`${id}`}})
-    .then(response => {
-      setChallenge(response.data.data);
-        console.log(challenge)
-        setLoading(false);
-    })
-    .catch(error => {
-        console.error('Error fetching submissions:', error);
-    });
-    // const fetchChallenge = () => {
-    //   // Simulate API delay
-    //   setTimeout(() => {
-    //     // This would be replaced with a real API call in production
-    //     // Find the challenge that matches the ID from the URL parameter
-    //     const dummyChallenges = [
-    //       {
-    //         _id: "6405a9c1b89d423f8c242255",
-    //         title: "AI Ethics Challenge",
-    //         description: "Develop a framework addressing ethical concerns in AI applications for healthcare, focusing on privacy, bias, and transparency.",
-    //         deadline: "2025-03-25T23:59:59Z",
-    //         rubric_id: "6405a9c1b89d423f8c242111",
-    //         created_at: "2025-03-18T10:00:00Z",
-    //         submissions: ["6405a9c1b89d423f8c242001", "6405a9c1b89d423f8c242002"],
-    //         reference_materials: ["https://ethics.ai/resource1", "https://ethics.ai/resource2"],
-    //         criteria: { mid: 75, high: 90 },
-    //         difficulty: "Advanced",
-    //         category: "Ethics & Society",
-    //         image: "/api/placeholder/400/200",
-    //         detailed_description: "This challenge focuses on creating an ethical framework for AI applications in healthcare. Participants are required to address key concerns including patient data privacy, algorithmic bias in diagnostics, and transparency of AI decision-making processes. Your framework should include practical guidelines for developers, healthcare providers, and regulatory bodies. Consider including case studies that demonstrate how your framework would be applied in real-world scenarios."
-    //       },
-    //       {
-    //         _id: "6405a9c1b89d423f8c242256",
-    //         title: "Machine Learning Hackathon",
-    //         description: "Build an ML model to predict crop yields based on climate data, helping farmers make informed decisions in challenging conditions.",
-    //         deadline: "2025-04-10T23:59:59Z",
-    //         rubric_id: "6405a9c1b89d423f8c242112",
-    //         created_at: "2025-03-15T08:30:00Z",
-    //         submissions: ["6405a9c1b89d423f8c242003"],
-    //         reference_materials: ["https://ml.org/resource1", "https://ml.org/resource2"],
-    //         criteria: { mid: 70, high: 85 },
-    //         difficulty: "Intermediate",
-    //         category: "Machine Learning",
-    //         image: "/api/placeholder/400/200",
-    //         detailed_description: "In this hackathon, you'll build a machine learning model that predicts crop yields using various climate and environmental data points. Your solution should incorporate historical weather patterns, soil quality metrics, and seasonal variations to provide accurate yield forecasts. The model should be able to adapt to different regions and crop types. Your submission should include the model, documentation explaining your approach, and a demo showing how farmers can use your solution to make planting and harvesting decisions."
-    //       },
-    //       {
-    //         _id: "6405a9c1b89d423f8c242257",
-    //         title: "Web Development Sprint",
-    //         description: "Create an accessible web application that helps connect local volunteers with community service opportunities in real-time.",
-    //         deadline: "2025-03-30T23:59:59Z",
-    //         rubric_id: "6405a9c1b89d423f8c242113",
-    //         created_at: "2025-03-10T14:15:00Z",
-    //         submissions: [],
-    //         reference_materials: ["https://webdev.org/resource1", "https://accessibility.org/guide"],
-    //         criteria: { mid: 65, high: 80 },
-    //         difficulty: "Beginner",
-    //         category: "Web Development",
-    //         image: "/api/placeholder/400/200",
-    //         detailed_description: "This sprint challenges you to develop a web application that connects volunteers with local community service opportunities in real-time. The application should allow organizations to post opportunities and volunteers to search and sign up based on their interests, skills, and availability. Your solution must be fully accessible, following WCAG 2.1 AA standards, and should work seamlessly on both desktop and mobile devices. Bonus points for implementing real-time notifications and a feedback system."
-    //       },
-    //       {
-    //         _id: "6405a9c1b89d423f8c242258",
-    //         title: "Natural Language Processing Challenge",
-    //         description: "Develop a sentiment analysis tool for social media posts that can identify emotional nuances across multiple languages.",
-    //         deadline: "2025-04-15T23:59:59Z",
-    //         rubric_id: "6405a9c1b89d423f8c242114",
-    //         created_at: "2025-03-05T09:00:00Z",
-    //         submissions: ["6405a9c1b89d423f8c242004", "6405a9c1b89d423f8c242005"],
-    //         reference_materials: ["https://nlp.org/resource1", "https://linguistics.org/guide"],
-    //         criteria: { mid: 80, high: 95 },
-    //         difficulty: "Advanced",
-    //         category: "Natural Language Processing",
-    //         image: "/api/placeholder/400/200",
-    //         detailed_description: "This NLP challenge asks you to create a sentiment analysis tool capable of identifying emotional nuances in social media posts across multiple languages. Your solution should be able to detect not just positive/negative sentiment but also identify specific emotions like joy, anger, fear, and surprise. The tool should work with at least three languages and account for cultural and linguistic differences in expressing emotions. Include a demonstration of your solution processing real-world social media data."
-    //       }
-    //     ];
+    const fetchChallenge = async () => {
+      setLoading(true);
+      try {
+        const response = await fetch(`http://localhost:8000/api/student/challenges/${id}`);
+        if (!response.ok) throw new Error("Failed to fetch challenge details");
 
-    //     const foundChallenge = dummyChallenges.find(c => c._id === id);
-        
-    //     if (foundChallenge) {
-    //       setChallenge(foundChallenge);
-    //     } else {
-    //       setSubmitError("Challenge not found");
-    //     }
-        
-    //     setLoading(false);
-    //   }, 800);
-    // };
+        const data = await response.json();
+        setChallenge(data.data);
+      } catch (error) {
+        setSubmitError(error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
 
     // fetchChallenge();
   }, [id]);
+
+  // useEffect(() => {
+  //   // For demo purposes, creating a dummy fetch function similar to the Challenges component
+  //   const fetchChallenge = () => {
+  //     // Simulate API delay
+  //     setTimeout(() => {
+  //       // This would be replaced with a real API call in production
+  //       // Find the challenge that matches the ID from the URL parameter
+  //       const dummyChallenges = [
+  //         {
+  //           _id: "6405a9c1b89d423f8c242255",
+  //           title: "AI Ethics Challenge",
+  //           description: "Develop a framework addressing ethical concerns in AI applications for healthcare, focusing on privacy, bias, and transparency.",
+  //           deadline: "2025-03-25T23:59:59Z",
+  //           rubric_id: "6405a9c1b89d423f8c242111",
+  //           created_at: "2025-03-18T10:00:00Z",
+  //           submissions: ["6405a9c1b89d423f8c242001", "6405a9c1b89d423f8c242002"],
+  //           reference_materials: ["https://ethics.ai/resource1", "https://ethics.ai/resource2"],
+  //           criteria: { mid: 75, high: 90 },
+  //           difficulty: "Advanced",
+  //           category: "Ethics & Society",
+  //           image: "/api/placeholder/400/200",
+  //           detailed_description: "This challenge focuses on creating an ethical framework for AI applications in healthcare. Participants are required to address key concerns including patient data privacy, algorithmic bias in diagnostics, and transparency of AI decision-making processes. Your framework should include practical guidelines for developers, healthcare providers, and regulatory bodies. Consider including case studies that demonstrate how your framework would be applied in real-world scenarios."
+  //         },
+  //         {
+  //           _id: "6405a9c1b89d423f8c242256",
+  //           title: "Machine Learning Hackathon",
+  //           description: "Build an ML model to predict crop yields based on climate data, helping farmers make informed decisions in challenging conditions.",
+  //           deadline: "2025-04-10T23:59:59Z",
+  //           rubric_id: "6405a9c1b89d423f8c242112",
+  //           created_at: "2025-03-15T08:30:00Z",
+  //           submissions: ["6405a9c1b89d423f8c242003"],
+  //           reference_materials: ["https://ml.org/resource1", "https://ml.org/resource2"],
+  //           criteria: { mid: 70, high: 85 },
+  //           difficulty: "Intermediate",
+  //           category: "Machine Learning",
+  //           image: "/api/placeholder/400/200",
+  //           detailed_description: "In this hackathon, you'll build a machine learning model that predicts crop yields using various climate and environmental data points. Your solution should incorporate historical weather patterns, soil quality metrics, and seasonal variations to provide accurate yield forecasts. The model should be able to adapt to different regions and crop types. Your submission should include the model, documentation explaining your approach, and a demo showing how farmers can use your solution to make planting and harvesting decisions."
+  //         },
+  //         {
+  //           _id: "6405a9c1b89d423f8c242257",
+  //           title: "Web Development Sprint",
+  //           description: "Create an accessible web application that helps connect local volunteers with community service opportunities in real-time.",
+  //           deadline: "2025-03-30T23:59:59Z",
+  //           rubric_id: "6405a9c1b89d423f8c242113",
+  //           created_at: "2025-03-10T14:15:00Z",
+  //           submissions: [],
+  //           reference_materials: ["https://webdev.org/resource1", "https://accessibility.org/guide"],
+  //           criteria: { mid: 65, high: 80 },
+  //           difficulty: "Beginner",
+  //           category: "Web Development",
+  //           image: "/api/placeholder/400/200",
+  //           detailed_description: "This sprint challenges you to develop a web application that connects volunteers with local community service opportunities in real-time. The application should allow organizations to post opportunities and volunteers to search and sign up based on their interests, skills, and availability. Your solution must be fully accessible, following WCAG 2.1 AA standards, and should work seamlessly on both desktop and mobile devices. Bonus points for implementing real-time notifications and a feedback system."
+  //         },
+  //         {
+  //           _id: "6405a9c1b89d423f8c242258",
+  //           title: "Natural Language Processing Challenge",
+  //           description: "Develop a sentiment analysis tool for social media posts that can identify emotional nuances across multiple languages.",
+  //           deadline: "2025-04-15T23:59:59Z",
+  //           rubric_id: "6405a9c1b89d423f8c242114",
+  //           created_at: "2025-03-05T09:00:00Z",
+  //           submissions: ["6405a9c1b89d423f8c242004", "6405a9c1b89d423f8c242005"],
+  //           reference_materials: ["https://nlp.org/resource1", "https://linguistics.org/guide"],
+  //           criteria: { mid: 80, high: 95 },
+  //           difficulty: "Advanced",
+  //           category: "Natural Language Processing",
+  //           image: "/api/placeholder/400/200",
+  //           detailed_description: "This NLP challenge asks you to create a sentiment analysis tool capable of identifying emotional nuances in social media posts across multiple languages. Your solution should be able to detect not just positive/negative sentiment but also identify specific emotions like joy, anger, fear, and surprise. The tool should work with at least three languages and account for cultural and linguistic differences in expressing emotions. Include a demonstration of your solution processing real-world social media data."
+  //         }
+  //       ];
+
+        // const foundChallenge = dummyChallenges.find(c => c._id === id);
+        
+        // if (foundChallenge) {
+        //   setChallenge(foundChallenge);
+        // } else {
+        //   setSubmitError("Challenge not found");
+        // }
+        
+  //       setLoading(false);
+  //     }, 800);
+  //   };
+
+  //   fetchChallenge();
+  // }, [id]);
 
   // Calculate days remaining for deadline
   const getDaysRemaining = (deadline) => {
@@ -118,33 +128,64 @@ function ChallengeDetail() {
     const options = { year: 'numeric', month: 'long', day: 'numeric' };
     return new Date(dateString).toLocaleDateString(undefined, options);
   };
-
   const handleFileUpload = async (e) => {
     e.preventDefault();
-    
+  
     if (!file) {
       setSubmitError("Please select a file to upload");
       return;
     }
-    
+  
+    const formData = new FormData();
+    formData.append("submissionFile", file);
+  
     setIsSubmitting(true);
     setSubmitError(null);
-    
+  
     try {
-      // In a real app, this would be an actual API call
-      // Simulating API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Simulating successful upload
+      const response = await fetch(`http://localhost:8000/api/student/challenges/${id}`, {
+        method: "POST",
+        body: formData,
+        credentials: "include",
+      });
+  
+      if (!response.ok) throw new Error("Failed to submit solution");
+  
       setSubmitSuccess(true);
       setFile(null);
     } catch (error) {
-      console.error("Error submitting file:", error);
-      setSubmitError("Failed to submit solution. Please try again.");
+      setSubmitError("Submission failed. Try again.");
     } finally {
       setIsSubmitting(false);
     }
   };
+  
+  // const handleFileUpload = async (e) => {
+  //   e.preventDefault();
+    
+  //   if (!file) {
+  //     setSubmitError("Please select a file to upload");
+  //     return;
+  //   }
+    
+  //   setIsSubmitting(true);
+  //   setSubmitError(null);
+    
+  //   try {
+  //     // In a real app, this would be an actual API call
+  //     // Simulating API call
+  //     await new Promise(resolve => setTimeout(resolve, 1500));
+      
+  //     // Simulating successful upload
+  //     setSubmitSuccess(true);
+  //     setFile(null);
+  //   } catch (error) {
+  //     console.error("Error submitting file:", error);
+  //     setSubmitError("Failed to submit solution. Please try again.");
+  //   } finally {
+  //     setIsSubmitting(false);
+  //   }
+  // };
 
   return (
     <div className="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen p-8">
