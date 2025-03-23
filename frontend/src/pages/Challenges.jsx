@@ -1,8 +1,20 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-
+import axios from "axios";
 function Challenges() {
   // Dummy challenges data with all required fields and realistic image URLs
+  const [challenges,setChallenges] = useState([]);
+  useEffect(() => {
+      axios.get('http://localhost:5000/api/student/challenges')
+    .then(response => {
+        setChallenges(response.data.data);
+        console.log(challenges)
+        setLoading(false);
+    })
+    .catch(error => {
+        console.error('Error fetching submissions:', error);
+    });
+    }, []);
   const dummyChallenges = [
     {
       _id: "6405a9c1b89d423f8c242255",
@@ -62,17 +74,17 @@ function Challenges() {
     }
   ];
 
-  const [challenges, setChallenges] = useState([]);
+  // const [challenges, setChallenges] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
 
-  useEffect(() => {
-    // Simulate API call with dummy data
-    setTimeout(() => {
-      setChallenges(dummyChallenges);
-      setLoading(false);
-    }, 800);
+  // useEffect(() => {
+  //   // Simulate API call with dummy data
+  //   setTimeout(() => {
+  //     setChallenges(dummyChallenges);
+  //     setLoading(false);
+  //   }, 800);
     
     // In real application, you would use:
     // fetch("/api/challenges")
@@ -85,7 +97,7 @@ function Challenges() {
     //     console.error("Error fetching challenges:", err);
     //     setLoading(false);
     //   });
-  }, []);
+  // }, []);
 
   // Handle search and filtering
   const getFilteredChallenges = () => {

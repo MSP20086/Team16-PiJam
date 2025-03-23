@@ -1,12 +1,21 @@
 import { Link } from "react-router-dom";
-
+import { useEffect, useState } from "react";
+import axios from 'axios';
 function StudentDashboard() {
-  const dummySubmissions = [
-    { id: 1, title: "AI Ethics Challenge", status: "Shortlisted", date: "March 15, 2025" },
-    { id: 2, title: "Machine Learning Hackathon", status: "Not Selected", date: "February 28, 2025" },
-    { id: 3, title: "Web Development Sprint", status: "Pending", date: "March 20, 2025" },
-  ];
-
+  const [submissions, setSubmissions] = useState([]);
+  useEffect(() => {
+    axios.get('http://localhost:5000/api/student/challenges/submissions', {
+      params: { student_id: "67dd4abdf066eeda20539c7c" }
+  })
+  .then(response => {
+      setSubmissions(response.data.data);
+      console.log(submissions)
+  })
+  .catch(error => {
+      console.error('Error fetching submissions:', error);
+  });
+  }, []);
+ 
   return (
     <div className="p-8 bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
       {/* Header with shadow and improved spacing */}
@@ -65,11 +74,11 @@ function StudentDashboard() {
               </tr>
             </thead>
             <tbody>
-              {dummySubmissions.map((submission, index) => (
+              {submissions.map((submission, index) => (
                 <tr
                   key={submission.id}
                   className={`border-b ${
-                    index === dummySubmissions.length - 1 ? "border-0" : ""
+                    index === submissions.length - 1 ? "border-0" : ""
                   } hover:bg-blue-50 transition duration-200`}
                 >
                   <td className="py-4 px-6 text-gray-700 font-medium">

@@ -14,7 +14,7 @@ export const getAllChallenges = asyncHandler(async (req, res) => {
 });
 
 export const getChallengeById = asyncHandler(async (req, res) => {
-    const { challengeId } = req.params;
+    const  challengeId  = req.params.challengeId;
     if (!mongoose.Types.ObjectId.isValid(challengeId)) {
         throw new ApiError(400, "Invalid challenge ID format");
     }
@@ -70,7 +70,8 @@ export const submitChallenge = asyncHandler(async (req, res) => {
 
 export const getStudentSubmissions = asyncHandler(async (req, res) => {
     // const student_id = req.user._id;
-    const { student_id } = req.query;
+    const student_id  = req.query.student_id;
+    console.log(student_id)
     if (!student_id) {
       throw new ApiError(400, "Student ID is required");
     }
