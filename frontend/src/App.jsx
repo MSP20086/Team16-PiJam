@@ -1,8 +1,12 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import ChallengeSubmissionsPage from "./pages/ChallengeSubmissionsPage";
 import TeacherChallengesPage from "./pages/TeacherChallengesPage";
 import SubmissionDetailPage from "./pages/SubmissionDetailPage";
 import Navbar from "./components/NavBar";
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import Challenges from './pages/Challenges';
+import ChallengeDetail from './pages/ChallengeDetail';
+import StudentDashboard from './pages/StudentDashboard';
+
 function App() {
   return (
     <>
@@ -14,6 +18,9 @@ function App() {
         <Route path="/teacher/challenges/:challengeId/submissions" element={<ChallengeSubmissionsPage />} />
         <Route path="/teacher/challenges" element={<TeacherChallengesPage />} />
         <Route path="/teacher/submissions/:submissionId" element={<SubmissionDetailPage />} />
+        <Route path="/" element={<StudentDashboard />} />
+          <Route path="/challenges" element={<Challenges />} />
+          <Route path="/challenges/:id" element={<ChallengeDetail />} />
         <Route path="*" element={<TeacherChallengesPage />} />
       </Routes>
     </Router>
