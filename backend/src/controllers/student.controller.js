@@ -66,12 +66,14 @@ export const submitChallenge = asyncHandler(async (req, res) => {
   }
 
   const submissionLocalPath = req.file?.path;
+  console.log(submissionLocalPath);
 
   if (!submissionLocalPath) {
     throw new ApiError(400, "Submission file is necessary");
   }
 
   const submissionCloudPath = await uploadOnCloudinary(submissionLocalPath);
+  console.log("here ", submissionCloudPath);
   if (!submissionCloudPath.url) {
     throw new ApiError(
       500,
@@ -93,7 +95,7 @@ export const submitChallenge = asyncHandler(async (req, res) => {
     summary: "",
     status: "pending",
   });
-  let evaluationEndpoint = "http://localhost:5000/evaluate";
+  let evaluationEndpoint = "https://0c17-34-32-164-192.ngrok-free.app";
   // if (file_type === "image") {
   //   evaluationEndpoint = "http://localhost:5000/evaluate/image";
   // } else if (file_type === "audio") {

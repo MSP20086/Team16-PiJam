@@ -12,7 +12,6 @@ def summarize_text(text):
     if not text.strip():
         return "No meaningful content to summarize."
 
-    # Generate summary
     summary = summarizer(
         text,
         max_length=100,  
