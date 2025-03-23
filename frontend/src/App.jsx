@@ -19,8 +19,8 @@ function App() {
         <Route path="/teacher/challenges" element={<TeacherChallengesPage />} />
         <Route path="/teacher/submissions/:submissionId" element={<SubmissionDetailPage />} />
         <Route path="/" element={<StudentDashboard />} />
-          <Route path="/challenges" element={<Challenges />} />
-          <Route path="/challenges/:id" element={<ChallengeDetail />} />
+        <Route path="/challenges" element={<Challenges />} />
+        <Route path="/challenges/:id" element={<ChallengeDetail />} />
         <Route path="*" element={<TeacherChallengesPage />} />
       </Routes>
     </Router>

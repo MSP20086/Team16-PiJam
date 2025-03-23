@@ -15,7 +15,7 @@ function ChallengeDetail() {
     const fetchChallenge = async () => {
       setLoading(true);
       try {
-        const response = await fetch(`http://localhost:8000/api/student/challenges/${id}`);
+        const response = await fetch(`http://localhost:5000/api/student/challenges/${id}`);
         if (!response.ok) throw new Error("Failed to fetch challenge details");
 
         const data = await response.json();
