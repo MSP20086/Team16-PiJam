@@ -1,7 +1,8 @@
 // backend/controllers/student.controller.js
 import mongoose from "mongoose";
 import axios from "axios";
-
+import fs from "fs";
+import FormData from "form-data";
 import { Challenge } from "../models/challenge.model.js";
 import { Submission } from "../models/submission.model.js";
 import { ApiError } from "../utils/ApiError.js";
@@ -34,18 +35,14 @@ export const getChallengeById = asyncHandler(async (req, res) => {
 export const submitChallenge = asyncHandler(async (req, res) => {
   const { challengeId } = req.params;
   const student_id = new mongoose.Types.ObjectId();
-  let file_path = "";
+  
   const challenge = await Challenge.findById(challengeId).populate("rubric_id");
   if (!challenge) {
     throw new ApiError(404, "Challenge not found");
   }
+  
   const problem_statement = challenge.description;
   const rubric = challenge.rubric_id;
-  // student_id = req.user._id;
-  // const student_id = new mongoose.Types.ObjectId();
-  // const  {file_path}=req.body;
-
-  // Validate student ID and file path
   if (!student_id) {
     throw new ApiError(400, "Student ID is required");
   }
@@ -61,96 +58,88 @@ export const submitChallenge = asyncHandler(async (req, res) => {
   if (!problem_statement) {
     throw new ApiError(400, "Problem statement is required");
   }
+  
   if (!rubric) {
     throw new ApiError(400, "Rubric is required");
   }
 
   const submissionLocalPath = req.file?.path;
+  console.log(submissionLocalPath);
 
   if (!submissionLocalPath) {
     throw new ApiError(400, "Submission file is necessary");
   }
 
   const submissionCloudPath = await uploadOnCloudinary(submissionLocalPath);
-  if (!submissionCloudPath.url) {
+  console.log("here ", submissionCloudPath);
+  if (!submissionCloudPath?.url) {
     throw new ApiError(
       500,
       "Submission file not uploaded successfully on cloudinary"
     );
   }
 
-  file_path = submissionCloudPath.url;
+  const file_path = submissionCloudPath.url;
 
   const submission = await Submission.create({
     student_id,
     challenge_id: challengeId,
     file_path: file_path,
-    extracted_text: "", // Will be updated after processing
-    ai_scores: {}, // Default empty scores
+    extracted_text: "",
+    ai_scores: {}, 
     teacher_scores: {},
     final_score: 0,
     classification: "low",
     summary: "",
     status: "pending",
   });
-  let evaluationEndpoint = "http://localhost:5000/evaluate";
-  // if (file_type === "image") {
-  //   evaluationEndpoint = "http://localhost:5000/evaluate/image";
-  // } else if (file_type === "audio") {
-  //   evaluationEndpoint = "http://localhost:5000/evaluate/speech";
-  // } else if (file_type === "video") {
-  //   evaluationEndpoint = "http://localhost:5000/evaluate/video";
-  // } else {
-  //   // Optional: if unknown file type, you may choose a default or throw an error.
-  //   throw new ApiError(400, "Unsupported file type for evaluation");
-  // }
-  const payload = {
-    file_url: file_path,
-    problem_statement,
-    rubric,
-  };
-  try {
-    // Call the Flask evaluation endpoint
-    const evaluationResponse = await axios.post(evaluationEndpoint, payload, {
-      headers: { "Content-Type": "application/json" },
-    });
-    const evalData = evaluationResponse.data;
+  console.log(rubric)
+  const formData = new FormData();
+  formData.append("file", fs.createReadStream(submissionLocalPath));
+  formData.append("problem_statement", problem_statement);
+  formData.append("rubric", JSON.stringify(rubric.criteria));
 
-    // Update submission with evaluation results
+  // url will change
+  
+  try {
+    const evaluationResponse = await axios.post("https://9b70-34-125-68-44.ngrok-free.app/evaluate", formData, {
+      headers: formData.getHeaders ? formData.getHeaders() : { 'Content-Type': 'multipart/form-data' },
+    });
+    console.log("Evaluation response:", evaluationResponse.data);
+    const evalData = evaluationResponse.data;
+    const aiScoresMap = {};
+    if (Array.isArray(evalData.evaluation.evaluation)) {
+      evalData.evaluation.evaluation.forEach(item => {
+        if (item.criterion && typeof item.criterion === "string") {
+          aiScoresMap[item.criterion] = item.score;
+        } else {
+          console.warn("Evaluation item has an invalid or missing criterion:", item);
+        }
+      });
+    } else {
+      console.error("Evaluation data is not in expected array format:", evalData.evaluation.evaluation);
+    }
+
     const updatedSubmission = await Submission.findByIdAndUpdate(
       submission._id,
       {
         extracted_text: evalData.transcription || "",
+        ai_scores: aiScoresMap || {},
         summary: evalData.summary || "",
-        ai_scores: evalData.evaluation || {},
-        final_score: evalData.final_score || 0,
-        classification: evalData.classification || "low",
-        status: "evaluated",
+        final_score: evalData.evaluation.final_score || 0,
+        status: "pending"
       },
       { new: true }
     );
-
-    return res
-      .status(201)
-      .json(
-        new ApiResponse(
-          201,
-          updatedSubmission,
-          "Submission uploaded and evaluated successfully"
-        )
-      );
+    
+    fs.unlinkSync(submissionLocalPath);
+  
+    return res.status(201).json(new ApiResponse(201, updatedSubmission, "Submission uploaded and evaluated successfully"));
   } catch (error) {
     console.error("Evaluation error:", error.message);
-    // Return the submission without evaluation updates if the call fails
-    return res
-      .status(201)
-      .json(
-        new ApiResponse(
-          201,
-          submission,
-          "Submission uploaded, but evaluation failed"
-        )
-      );
+    fs.unlinkSync(submissionLocalPath);
+  
+    return res.status(201).json(new ApiResponse(201, submission, "Submission uploaded, but evaluation failed"));  
   }
 });
 
