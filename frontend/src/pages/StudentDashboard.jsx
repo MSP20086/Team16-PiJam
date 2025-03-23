@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
-import { useEffect, useState } from "react";
-import axios from 'axios';
+
 function StudentDashboard() {
   const [submissions, setSubmissions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -11,7 +10,9 @@ function StudentDashboard() {
   useEffect(() => {
     const fetchSubmissions = async () => {
       try {
-        const response = await axios.get("http://localhost:8000/api/student/challenges/submissions");
+        const response = await axios.get("http://localhost:8000/api/student/challenges/submissions",{
+          params:{student_id:"65fdc2a1e4b0c2e3d1a7b123"}
+        });
 
         console.log("API Response:", response.data); // Debugging ✅
         setSubmissions(response.data?.data || []);

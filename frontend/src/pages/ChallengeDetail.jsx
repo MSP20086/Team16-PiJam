@@ -27,7 +27,7 @@ function ChallengeDetail() {
       }
     };
 
-    // fetchChallenge();
+    fetchChallenge();
   }, [id]);
 
   // useEffect(() => {

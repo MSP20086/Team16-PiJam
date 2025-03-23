@@ -62,7 +62,7 @@ function Challenges() {
   //   }
   // ];
 
-  // const [challenges, setChallenges] = useState([]);
+  const [challenges, setChallenges] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
@@ -73,7 +73,8 @@ function Challenges() {
         const response = await fetch("http://localhost:8000/api/student/challenges");
         if (!response.ok) throw new Error("Failed to fetch challenges");
         const data = await response.json();
-        setChallenges(data);
+        console.log(data)
+        setChallenges(data.data);
       } catch (err) {
         setError(err.message);
       } finally {
