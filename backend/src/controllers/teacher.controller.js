@@ -6,6 +6,8 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { Rubric } from "../models/rubric.model.js";
 import { Submission } from "../models/submission.model.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
+import { Student } from "../models/student.model.js";
+import { User } from "../models/user.model.js";
 
 // display charts, analytics remaining
 // get insights remaining
@@ -76,7 +78,11 @@ export const getSubmissions = asyncHandler(async (req, res) => {
   if (!challenge) {
     throw new ApiError(404, "Challenge not found");
   }
-  const submissions = await Submission.find({ challenge_id: challengeId });
+  const submissions = await Submission.find({ challenge_id: challengeId })
+  .populate({
+    path: 'student_id',
+    select: 'name email'
+  });
   return res.status(200).json(new ApiResponse(200, submissions));
 });
 
@@ -85,12 +91,18 @@ export const getSpecificSubmission = asyncHandler(async (req, res) => {
   if (!submissionId) {
     throw new ApiError(400, "Submission ID is required");
   }
-  const submission = await Submission.findById(submissionId);
+  const submission = await Submission.findById(submissionId)
+  .populate({
+    path: 'student_id',
+    select: 'name email'
+  });
+  
   if (!submission) {
     throw new ApiError(404, "Submission not found");
   }
   return res.status(200).json(new ApiResponse(200, submission));
 });
+
 
 export const evaluateSubmission = asyncHandler(async (req, res) => {
   const { submissionId, challengeId, score } = req.body;
