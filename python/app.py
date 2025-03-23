@@ -44,3 +44,7 @@ def create_app():
 if __name__ == "__main__":
     app = create_app()
     app.run(debug=True)
+
+
+#for deploying the website in google colab, use this
+#https://colab.research.google.com/drive/1pZF7Ak1raa45zRwXhJk3VbhvpF4QmUTd?usp=sharing
