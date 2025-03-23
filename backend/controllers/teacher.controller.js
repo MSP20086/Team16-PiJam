@@ -94,7 +94,9 @@ export const getSpecificSubmission = asyncHandler(async (req, res) => {
 });
 
 export const evaluateSubmission = asyncHandler(async (req, res) => {
-    const {submissionId, challengeId, score} = req.body;
+    const submissionId = req.params.submissionId;
+    const challengeId = req.params.challengeId;
+    const {score} = req.body;
     if (!submissionId || !challengeId || !score)
     {
         throw new ApiError(400, "All fields are required");
