@@ -83,7 +83,13 @@ export const getSubmissions = asyncHandler(async (req, res) => {
     path: 'student_id',
     select: 'name email'
   });
-  return res.status(200).json(new ApiResponse(200, submissions));
+  const rubric = await Rubric.findById(challenge.rubric_id);
+  if (!rubric) {
+    throw new ApiError(404, "Rubric not found");
+  }
+  const challengeObj = challenge.toObject();
+  challengeObj.rubric = rubric;
+  return res.status(200).json(new ApiResponse(200, {challenge:challengeObj,submissions:submissions}));
 });
 
 export const getSpecificSubmission = asyncHandler(async (req, res) => {
@@ -96,11 +102,11 @@ export const getSpecificSubmission = asyncHandler(async (req, res) => {
     path: 'student_id',
     select: 'name email'
   });
-  
+  const challenge = await Challenge.findById(submission.challenge_id);
   if (!submission) {
     throw new ApiError(404, "Submission not found");
   }
-  return res.status(200).json(new ApiResponse(200, submission));
+  return res.status(200).json(new ApiResponse(200, {challenge,submission}));
 });
 
 

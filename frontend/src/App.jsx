@@ -14,7 +14,7 @@ function App() {
         <Route path="/teacher/challenges/:challengeId/submissions" element={<ChallengeSubmissionsPage />} />
         <Route path="/teacher/challenges" element={<TeacherChallengesPage />} />
         <Route path="/teacher/submissions/:submissionId" element={<SubmissionDetailPage />} />
-        <Route path="*" element={<SubmissionDetailPage />} />
+        <Route path="*" element={<TeacherChallengesPage />} />
       </Routes>
     </Router>
     </>
