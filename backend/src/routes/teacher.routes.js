@@ -6,6 +6,7 @@ import {
   getSpecificSubmission,
   evaluateSubmission,
   getChallengeAnalytics,
+  getInsightsOfSpecificChallenge,
 } from "../controllers/teacher.controller.js";
 import { upload } from "../middlewares/multer.middlewares.js";
 
@@ -24,5 +25,6 @@ router.get("/:challengeId/submissions", getSubmissions);
 router.get("/submissions/:submissionId", getSpecificSubmission);
 router.post("/submission/evaluate", evaluateSubmission);
 router.get("/analytics/:challengeId", getChallengeAnalytics);
+router.route("/:challengeId/insights").get(getInsightsOfSpecificChallenge);
 
 export default router;

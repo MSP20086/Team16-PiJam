@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from google import genai
+import google.generativeai as genai
 from pydantic import BaseModel
 from typing import List
 import json
