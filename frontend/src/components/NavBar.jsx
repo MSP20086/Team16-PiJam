@@ -643,9 +643,21 @@ const Navbar = () => {
                   >
                     <Award className={`mr-1 h-4 w-4 ${isDarkMode ? 'text-yellow-400' : 'text-yellow-500'}`} /> My Quests
                   </a>
-                  <div className="relative group">
+                  <a
+                        href="/challenges/insights"
+                        className={`hover:bg-indigo-100 px-3 py-2 rounded-full text-sm font-medium flex items-center transition duration-300 ${isDarkMode ? 'hover:bg-gray-800' : ''}`}
+                      >
+                        <BarChart2 className={`mr-1 h-4 w-4 ${isDarkMode ? 'text-blue-400' : 'text-blue-500'}`} /> Insights & Dashboard
+                      </a>
+                  {/* <div className="relative group">
                     <button className={`hover:bg-indigo-100 px-3 py-2 rounded-full text-sm font-medium flex items-center transition duration-300 ${isDarkMode ? 'hover:bg-gray-800' : ''}`}>
-                      <BarChart2 className={`mr-1 h-4 w-4 ${isDarkMode ? 'text-blue-400' : 'text-blue-500'}`} /> More <ChevronDown className="ml-1 h-3 w-3" />
+                      <BarChart2 className={`mr-1 h-4 w-4 ${isDarkMode ? 'text-blue-400' : 'text-blue-500'}`} /> <a
+                        href="/challenges/123/insights"
+                        className={`block px-2 py-2 text-sm hover:bg-indigo-100 rounded-md mx-1 ${isDarkMode ? 'hover:bg-gray-700' : ''}`}
+                      >
+                        Insights & Dashboard
+                      </a>
+                      <ChevronDown className="ml-1 h-3 w-3" />
                     </button>
                     <div className={`absolute left-0 mt-2 w-48 rounded-lg shadow-lg py-1 focus:outline-none hidden group-hover:block z-10 ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
                       <a
@@ -655,7 +667,7 @@ const Navbar = () => {
                         Insights & Dashboard
                       </a>
                     </div>
-                  </div>
+                  </div> */}
                 </>
               )}
             </div>
