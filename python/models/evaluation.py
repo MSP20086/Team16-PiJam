@@ -34,7 +34,7 @@ def evaluate_solution(problem_statement: str, solution: str, rubric: List[dict],
     Rubric:
     """
     for criterion in rubric:
-        prompt += f"- {criterion['name']} ({criterion['weight']}) → {criterion['description']}\n"
+        prompt += f"- {criterion['parameter']} ({criterion['weight']}) → {criterion['description']}\n"
 
     response_schema = EvaluationResponse.schema()
     
