@@ -12,69 +12,29 @@ import { User } from "../models/user.model.js";
 // display charts, analytics remaining
 // get insights remaining
 export const getInsightsOfSpecificChallenge = asyncHandler(async (req, res) => {
-  // use this code while integrating with actual flask server
+  const { challengeId } = req.params;
 
-  // const { challengeId } = req.params;
+  if (!mongoose.Types.ObjectId.isValid(challengeId)) {
+    throw new ApiError(400, "Invalid Challenge ID");
+  }
 
-  // if (!mongoose.Types.ObjectId.isValid(challengeId)) {
-  //   throw new ApiError(400, "Invalid Challenge ID");
-  // }
+  const submissions = await Submission.find({
+    challenge_id: challengeId,
+  }).populate("challenge_id");
 
-  // const submissions = await Submission.find({
-  //   challenge_id: challengeId,
-  // }).populate("challenge_id");
+  const submissionsExtractedText = submissions.map(
+    (submission) => submission.extracted_text
+  );
 
-  // const submissionsExtractedText = submissions.map(
-  //   (submission) => submission.extracted_text
-  // );
 
-  // hard coded data for now for testing
-  const submissionsExtractedText = [
-    {
-      id: 1,
-      title: "Climate Change Effects",
-      summary:
-        "Climate change significantly impacts agriculture worldwide. Increased temperatures alter growing seasons, while unpredictable rainfall patterns damage crop yields. Extreme weather events including floods, droughts, and hurricanes destroy farmland. Agricultural adaptation requires developing drought-resistant crops, implementing efficient irrigation systems, and diversifying farming practices to enhance resilience against environmental stressors.",
-      classification: "low",
-      status: "selected",
-      date_created: "2025-01-15T09:23:45Z",
-    },
-    {
-      id: 2,
-      title: "Exercise Benefits",
-      summary:
-        "Regular exercise provides numerous physiological benefits. Cardiovascular workouts strengthen heart muscles, improve circulation, and regulate blood pressure. Resistance training builds muscle mass, increases bone density, and boosts metabolism. Flexibility exercises enhance joint mobility, prevent injuries, and improve posture. Additionally, physical activity releases endorphins, reduces cortisol levels, and improves sleep quality, contributing to better mental health.",
-      classification: "mid",
-      status: "selected",
-      date_created: "2025-01-16T14:12:33Z",
-    },
-    {
-      id: 3,
-      title: "Machine Learning Overview",
-      summary:
-        "Machine learning algorithms identify patterns within datasets without explicit programming. Supervised learning utilizes labeled examples for classification tasks, while unsupervised learning discovers hidden structures in unlabeled data. Neural networks mimic brain functionality through interconnected node layers that adjust connection weights during training. Practical applications include image recognition, natural language processing, recommendation systems, fraud detection, and autonomous vehicles.",
-      classification: "high",
-      status: "pending",
-      date_created: "2025-01-18T08:45:21Z",
-    },
-    {
-      id: 4,
-      title: "Ancient Rome",
-      summary:
-        "Ancient Rome established sophisticated governmental structures alongside impressive architectural achievements. The Senate provided legislative authority, while elected consuls exercised executive power during the Republic period. Roman engineering feats included aqueducts transporting water across vast distances, concrete dome construction techniques, and extensive road networks spanning territories. Latin, their language, formed the foundation for Romance languages including Spanish, French, Italian, Portuguese, and Romanian.",
-      classification: "mid",
-      status: "selected",
-      date_created: "2025-01-19T11:34:56Z",
-    },
-  ];
-
-  const flaskEndPoint = "http://localhost:5000/api/analyse_text";
+  const flaskEndPoint = "https://ab62-34-126-131-38.ngrok-free.app/api/analyze_text";
   try {
     const insightsResponse = await axios.post(
       flaskEndPoint,
-      { submissions: submissionsExtractedText }, // Wrapped in an object
+      submissions, 
       { headers: { "Content-Type": "application/json" } }
     );
+    console.log(insightsResponse);
     const insights = insightsResponse.data;
 
     return res.status(201).json(new ApiResponse(201, insights));
@@ -97,7 +57,6 @@ export const createChallenge = asyncHandler(async (req, res) => {
   if (!teacherId) {
     throw new ApiError(400, "User ID is required");
   }
-  // console.log(req.body);
   let { title, description, deadline, criteria, rubric } = req.body;
   if (!title || !description || !deadline || !criteria || !rubric) {
     throw new ApiError(400, "All fields are required");
