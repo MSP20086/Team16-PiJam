@@ -96,7 +96,7 @@ export const createChallenge = asyncHandler(async (req, res) => {
   if (!teacherId) {
     throw new ApiError(400, "User ID is required");
   }
-
+  // console.log(req.body);
   let { title, description, deadline, criteria, rubric } = req.body;
   if (!title || !description || !deadline || !criteria || !rubric) {
     throw new ApiError(400, "All fields are required");

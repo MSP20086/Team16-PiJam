@@ -632,7 +632,7 @@ const Navbar = () => {
               {userRole === ROLE.TEACHER && isLoggedIn && (
                 <>
                   <a
-                    href="/create-challenge"
+                    href="/challenges/new"
                     className={`hover:bg-indigo-100 px-3 py-2 rounded-full text-sm font-medium flex items-center transition duration-300 ${isDarkMode ? 'hover:bg-gray-800' : ''}`}
                   >
                     <PlusCircle className={`mr-1 h-4 w-4 ${isDarkMode ? 'text-green-400' : 'text-green-500'}`} /> Craft Quest
@@ -649,7 +649,7 @@ const Navbar = () => {
                     </button>
                     <div className={`absolute left-0 mt-2 w-48 rounded-lg shadow-lg py-1 focus:outline-none hidden group-hover:block z-10 ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
                       <a
-                        href="/insights"
+                        href="/challenges/123/insights"
                         className={`block px-4 py-2 text-sm hover:bg-indigo-100 rounded-md mx-1 ${isDarkMode ? 'hover:bg-gray-700' : ''}`}
                       >
                         Insights & Dashboard
