@@ -102,7 +102,7 @@ export const submitChallenge = asyncHandler(async (req, res) => {
   // url will change
   
   try {
-    const evaluationResponse = await axios.post("https://9b70-34-125-68-44.ngrok-free.app/evaluate", formData, {
+    const evaluationResponse = await axios.post("https://a802-34-87-134-58.ngrok-free.app/evaluate", formData, {
       headers: formData.getHeaders ? formData.getHeaders() : { 'Content-Type': 'multipart/form-data' },
     });
     console.log("Evaluation response:", evaluationResponse.data);
@@ -133,7 +133,7 @@ export const submitChallenge = asyncHandler(async (req, res) => {
     );
     
     fs.unlinkSync(submissionLocalPath);
-  
+    console.log("Submission updated with evaluation data:", updatedSubmission);
     return res.status(201).json(new ApiResponse(201, updatedSubmission, "Submission uploaded and evaluated successfully"));
   } catch (error) {
     console.error("Evaluation error:", error.message);

@@ -412,6 +412,19 @@ const ChallengeSubmissionsPage = () => {
   const navigate = useNavigate();
   const { challengeId } = useParams();
 
+  const formatDeadline = (isoString) => {
+    const date = new Date(isoString);
+    return date.toLocaleString("en-US", {
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    });
+  };
+  
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -569,7 +582,7 @@ const ChallengeSubmissionsPage = () => {
           <div className="flex items-center mb-4 text-indigo-100">
             <FaCalendarAlt className="mr-2 text-indigo-200" />
             <span>
-              Deadline: {challenge.deadline}
+              Deadline: {formatDeadline(challenge.deadline)}
               {daysRemaining() > 0 ? (
                 <span className="ml-1 font-medium bg-indigo-500/30 px-2 py-0.5 rounded-full text-sm">
                   {daysRemaining()} days remaining
@@ -661,7 +674,7 @@ const ChallengeSubmissionsPage = () => {
                               {item.parameter}
                             </span>
                             <span className="bg-indigo-600 text-white px-2 py-1 rounded-full text-xs font-medium">
-                              {item.weight * 100}%
+                              {item.weight}%
                             </span>
                           </div>
                           <p className="text-sm text-slate-600">{item.description}</p>

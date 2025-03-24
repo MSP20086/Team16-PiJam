@@ -14,12 +14,14 @@ def create_text_analysis_blueprint():
             data = request.get_json()
             if not data:
                 return jsonify({"error": "No data provided"}), 400
-            response = analyze_text_data(data)
-            return jsonify(response)
+            
+            response = analyze_text_data(data) 
+            return jsonify(response) 
         except Exception as e:
             return jsonify({"error": str(e)}), 500
     
     return blueprint
+
 
 def create_app():
     app = Flask(__name__)
