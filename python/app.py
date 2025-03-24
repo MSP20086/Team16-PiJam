@@ -62,3 +62,8 @@ def create_app():
 if __name__ == "__main__":
     app = create_app()
     app.run(debug=True)
+
+#use this google colab
+#https://colab.research.google.com/drive/1pZF7Ak1raa45zRwXhJk3VbhvpF4QmUTd#scrollTo=C7GZTcYZnMz4
+
+#just upload the file in google colab and run and use the ngrok link to update the backend links
