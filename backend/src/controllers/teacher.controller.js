@@ -8,7 +8,7 @@ import { Submission } from "../models/submission.model.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import axios from "axios";
 import { User } from "../models/user.model.js";
-
+import {Student} from "../models/student.model.js";
 // display charts, analytics remaining
 // get insights remaining
 export const getInsightsOfSpecificChallenge = asyncHandler(async (req, res) => {
@@ -157,9 +157,9 @@ export const getSubmissions = asyncHandler(async (req, res) => {
     challenge_id: challengeId,
   }).populate({
     path: "student_id",
-    select: "name email",
+    select: "name",
   });
-  console.log(submissions);
+  // console.log(submissions[0]);
   const rubric = await Rubric.findById(challenge.rubric_id);
   if (!rubric) {
     throw new ApiError(404, "Rubric not found");
@@ -179,15 +179,22 @@ export const getSpecificSubmission = asyncHandler(async (req, res) => {
   if (!submissionId) {
     throw new ApiError(400, "Submission ID is required");
   }
-  const submission = await Submission.findById(submissionId).populate({
-    path: "student_id",
-    select: "name email",
-  });
+  // Fetch the submission and populate its references
+  const submission = await Submission.findById(submissionId);
+
   const challenge = await Challenge.findById(submission.challenge_id);
+
   if (!submission) {
     throw new ApiError(404, "Submission not found");
   }
-  return res.status(200).json(new ApiResponse(200, { challenge, submission }));
+  let user = null;
+
+  // Fetch student only if submission.student_id exists
+  if (submission.student_id && submission.student_id._id) {
+    user = await User.findById(submission.student_id);
+  }
+
+  return res.status(200).json(new ApiResponse(200, { submission, challenge , user }));
 });
 
 export const evaluateSubmission = asyncHandler(async (req, res) => {

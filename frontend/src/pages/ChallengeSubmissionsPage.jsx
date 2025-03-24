@@ -432,6 +432,7 @@ const ChallengeSubmissionsPage = () => {
         axios.get(
           `http://localhost:5000/api/teacher/${challengeId}/submissions`
         ).then((response) => {
+          console.log(response.data)
           setSubmissions(response.data.data.submissions);
           setChallenge(response.data.data.challenge);
         })
@@ -751,7 +752,7 @@ const ChallengeSubmissionsPage = () => {
                         <div>
                           <div className="flex items-center">
                             <span className="text-lg font-medium mr-2">
-                              {submission.student}
+                              {submission.student_id.name}
                             </span>
                             <span
                               className={`px-3 py-1 text-xs rounded-full border ${getStatusColor(submission.status)}`}
