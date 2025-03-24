@@ -430,7 +430,7 @@ const TeacherChallengesPage = () => {
 
   // Handle create new challenge
   const handleCreateNew = () => {
-    navigate("/teacher/challenges/new");
+    navigate("/challenges/new");
   };
 
   // Loading skeletons

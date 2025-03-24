@@ -7,6 +7,7 @@ import { Rubric } from "../models/rubric.model.js";
 import { Submission } from "../models/submission.model.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import axios from "axios";
+import { User } from "../models/user.model.js";
 
 // display charts, analytics remaining
 // get insights remaining
@@ -158,6 +159,7 @@ export const getSubmissions = asyncHandler(async (req, res) => {
     path: "student_id",
     select: "name email",
   });
+  console.log(submissions);
   const rubric = await Rubric.findById(challenge.rubric_id);
   if (!rubric) {
     throw new ApiError(404, "Rubric not found");
@@ -189,8 +191,8 @@ export const getSpecificSubmission = asyncHandler(async (req, res) => {
 });
 
 export const evaluateSubmission = asyncHandler(async (req, res) => {
-  const { submissionId, challengeId, score } = req.body;
-  if (!submissionId || !challengeId || !score) {
+  const { submissionId, challengeId, score, status} = req.body;
+  if (!submissionId || !challengeId || !score || !status) {
     throw new ApiError(400, "All fields are required");
   }
   const submission = await Submission.findById(submissionId);
@@ -226,6 +228,7 @@ export const evaluateSubmission = asyncHandler(async (req, res) => {
       teacher_scores: score,
       final_score,
       classification,
+      status
     },
     { new: true }
   );

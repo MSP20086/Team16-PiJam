@@ -9,6 +9,7 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
+import {User} from "../models/user.model.js";
 
 export const getAllChallenges = asyncHandler(async (req, res) => {
   // Optionally, can add filtering logic based on student criteria.
@@ -34,7 +35,7 @@ export const getChallengeById = asyncHandler(async (req, res) => {
 
 export const submitChallenge = asyncHandler(async (req, res) => {
   const { challengeId } = req.params;
-  const student_id = new mongoose.Types.ObjectId();
+  const student_id = "65fdc2a1e4b0c2e3d1a7b123";
   
   const challenge = await Challenge.findById(challengeId).populate("rubric_id");
   if (!challenge) {
@@ -93,16 +94,20 @@ export const submitChallenge = asyncHandler(async (req, res) => {
     summary: "",
     status: "pending",
   });
-  console.log(rubric)
+
+  // Add new submission to the challenge's submissions array
+  challenge.submissions.push(submission._id);
+  await challenge.save();
+
+  console.log(rubric);
   const formData = new FormData();
   formData.append("file", fs.createReadStream(submissionLocalPath));
   formData.append("problem_statement", problem_statement);
   formData.append("rubric", JSON.stringify(rubric.criteria));
 
   // url will change
-  
   try {
-    const evaluationResponse = await axios.post("https://a802-34-87-134-58.ngrok-free.app/evaluate", formData, {
+    const evaluationResponse = await axios.post("https://7c80-34-125-196-67.ngrok-free.app/evaluate", formData, {
       headers: formData.getHeaders ? formData.getHeaders() : { 'Content-Type': 'multipart/form-data' },
     });
     console.log("Evaluation response:", evaluationResponse.data);
@@ -142,6 +147,7 @@ export const submitChallenge = asyncHandler(async (req, res) => {
     return res.status(201).json(new ApiResponse(201, submission, "Submission uploaded, but evaluation failed"));  
   }
 });
+
 
 export const getStudentSubmissions = asyncHandler(async (req, res) => {
   // const student_id = req.user._id;

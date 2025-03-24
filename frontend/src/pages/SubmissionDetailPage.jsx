@@ -503,6 +503,8 @@ const SubmissionDetailPage = () => {
   const [editedScores, setEditedScores] = useState({});
   const [challengeData, setChallengeData] = useState(null);
 
+  console.log(submission)
+
   // Fetch submission data on component mount
   useEffect(() => {
     const fetchSubmission = async () => {
@@ -511,9 +513,25 @@ const SubmissionDetailPage = () => {
         const response = await axios.get(
           `http://localhost:5000/api/teacher/submissions/${submissionId}`
         );
-        setSubmission(response.data.data.submission);
+        console.log(response)
+        const submissionData = response.data.data.submission;
+        setSubmission(submissionData);
         setChallengeData(response.data.data.challenge);
-        setEditedScores({ ...response.data.data.teacher_scores });
+        
+        // Initialize scores with AI score categories if teacher scores are empty
+        const aiScores = submissionData.ai_scores || {};
+        const teacherScores = response.data.data.teacher_scores || {};
+        
+        // Create a default scores object with all categories from AI scores
+        const defaultScores = {};
+        Object.keys(aiScores).forEach(category => {
+          // Use existing teacher score if available, otherwise use AI score as default
+          defaultScores[category] = teacherScores[category] !== undefined 
+            ? teacherScores[category] 
+            : aiScores[category] || 0;
+        });
+        
+        setEditedScores(defaultScores);
         setLoading(false);
       } catch (err) {
         setError(err.response?.data?.message || "Error fetching submission");
@@ -563,10 +581,23 @@ const SubmissionDetailPage = () => {
   const saveScores = async () => {
     try {
       setLoading(true);
-      const response = await axios.post("/api/submission/evaluate", {
+      
+      // Ensure all categories from AI scores are included in edited scores
+      const aiScores = submission.ai_scores || {};
+      const completeScores = { ...editedScores };
+      
+      // Fill in any missing categories
+      Object.keys(aiScores).forEach(category => {
+        if (completeScores[category] === undefined) {
+          completeScores[category] = aiScores[category] || 0;
+        }
+      });
+      const status = submission.status || "pending"; 
+      const response = await axios.post("http://localhost:5000/api/teacher/submission/evaluate", {
         submissionId: submission._id,
         challengeId: submission.challenge_id,
-        score: editedScores,
+        score: completeScores,
+        status: status,
       });
 
       setSubmission(response.data.data);
@@ -580,7 +611,18 @@ const SubmissionDetailPage = () => {
 
   // Reset to original scores
   const cancelEdit = () => {
-    setEditedScores({ ...submission.teacher_scores });
+    // Ensure we're resetting to proper teacher scores or default to AI scores
+    const aiScores = submission.ai_scores || {};
+    const teacherScores = submission.teacher_scores || {};
+    
+    const resetScores = {};
+    Object.keys(aiScores).forEach(category => {
+      resetScores[category] = teacherScores[category] !== undefined 
+        ? teacherScores[category] 
+        : aiScores[category] || 0;
+    });
+    
+    setEditedScores(resetScores);
     setIsEditing(false);
   };
 
@@ -815,7 +857,6 @@ const SubmissionDetailPage = () => {
             {formatDate(submission.submitted_at || submission.createdAt)}
           </p>
         </div>
-
         <div className="p-6 space-y-8">
           {/* Student Info and Score Overview Card */}
           <div className="flex flex-col md:flex-row gap-6">
@@ -964,7 +1005,7 @@ const SubmissionDetailPage = () => {
               </div>
               <div className="p-5">
                 <div className="h-48 overflow-y-auto bg-slate-50 p-4 rounded-lg text-slate-700">
-                  {submission.extracted_text || "No summary available"}
+                  {submission.summary || "No summary available"}
                 </div>
               </div>
             </div>
