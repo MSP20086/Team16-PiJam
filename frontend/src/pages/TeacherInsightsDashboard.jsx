@@ -8,6 +8,13 @@ import {
 } from 'recharts';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
+import { 
+  AlertTriangle, 
+  TrendingUp, 
+  BarChart as BarChartIcon, 
+  FileText, 
+  Globe 
+} from 'lucide-react';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
@@ -16,6 +23,8 @@ const TeacherInsightsDashboard = () => {
   const [graphHtml, setGraphHtml] = useState('');
   const [loadGraph, setLoadGraph] = useState(false); // Lazy load graph
   const { id } = useParams();
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
   const graphContainerRef = useRef(null);
 
   useEffect(() => {
@@ -24,36 +33,45 @@ const TeacherInsightsDashboard = () => {
         const response = await axios.get(`http://localhost:5000/api/teacher/${id}/insights`);
         console.log('Fetched insights:', response.data);
         setInsightsData(response.data.data);
-        setGraphHtml(response.data.data.graph_html);
+        setGraphHtml(response.data.data.graph_html || '');
+        setIsLoading(false);
       } catch (error) {
         console.error('Error fetching insights:', error);
+        setError('Failed to load insights. Please try again later.');
+        setIsLoading(false);
       }
     }
     fetchInsights();
   }, [id]);
 
-  useEffect(() => {
-    if (loadGraph && graphHtml && graphContainerRef.current) {
-      const container = graphContainerRef.current;
-      container.innerHTML = graphHtml;
+  // useEffect(() => {
+  //   if (loadGraph && graphHtml && graphContainerRef.current) {
+  //     try {
+  //       const container = graphContainerRef.current;
+  //       container.innerHTML = graphHtml;
 
-      const scripts = container.getElementsByTagName('script');
-      Array.from(scripts).forEach((oldScript) => {
-        const newScript = document.createElement('script');
-        newScript.text = oldScript.text;
-        Object.values(oldScript.attributes).forEach((attr) =>
-          newScript.setAttribute(attr.name, attr.value)
-        );
-        oldScript.parentNode.replaceChild(newScript, oldScript);
-      });
-    }
+  //       // Safely execute scripts
+  //       const scripts = container.getElementsByTagName('script');
+  //       Array.from(scripts).forEach((oldScript) => {
+  //         const newScript = document.createElement('script');
+  //         newScript.text = oldScript.innerHTML;
+  //         Object.values(oldScript.attributes).forEach((attr) =>
+  //           newScript.setAttribute(attr.name, attr.value)
+  //         );
+  //         oldScript.parentNode.replaceChild(newScript, oldScript);
+  //       });
+  //     } catch (error) {
+  //       console.error('Error rendering graph:', error);
+  //       setError('Failed to render graph. Please check the data source.');
+  //     }
+  //   }
 
-    return () => {
-      if (graphContainerRef.current) {
-        graphContainerRef.current.innerHTML = ''; // Cleanup
-      }
-    };
-  }, [graphHtml, loadGraph]);
+  //   return () => {
+  //     if (graphContainerRef.current) {
+  //       graphContainerRef.current.innerHTML = ''; // Cleanup
+  //     }
+  //   };
+  // }, [graphHtml, loadGraph]);
 
   const submissionStatusData = insightsData
     ? Object.entries(insightsData.selection_status).map(([key, value]) => ({
@@ -76,7 +94,7 @@ const TeacherInsightsDashboard = () => {
 
   const thoughtClustersData = insightsData
     ? insightsData.thought_clusters.map((count, index) => ({
-        cluster: `Cluster ${index}`,
+        cluster: `Cluster ${index+1}`,
         count,
       })).filter(item => item.count > 0)
     : [];
@@ -86,6 +104,28 @@ const TeacherInsightsDashboard = () => {
       setLoadGraph(true); // Load graph only when tab is active
     }
   };
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+        <div className="text-center">
+          <div className="animate-spin w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading insights...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex justify-center items-center min-h-screen bg-red-50">
+        <div className="text-center p-8 bg-white rounded-xl shadow-lg">
+          <AlertTriangle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-red-600 mb-2">Oops! Something went wrong</h2>
+          <p className="text-gray-600">{error}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
@@ -252,17 +292,33 @@ const TeacherInsightsDashboard = () => {
           </TabsContent>
 
           <TabsContent value="graph" className="space-y-6">
-            <Card>
+            <Card className="bg-white/80 backdrop-blur-lg shadow-xl">
               <CardHeader>
-                <CardTitle>Graph Visualization</CardTitle>
-                <CardDescription>Interactive graph generated by Plotly</CardDescription>
+                <CardTitle className="flex items-center gap-2">
+                  <Globe className="w-6 h-6 text-blue-500" />
+                  Graph Visualization
+                </CardTitle>
+                <CardDescription>
+                  Interactive visualization generated by data analysis
+                </CardDescription>
               </CardHeader>
               <CardContent>
-                {loadGraph && graphHtml ? (
-                  <div ref={graphContainerRef} />
+                {/* {loadGraph && graphHtml ? (
+                  <div 
+                    // ref={graphContainerRef} 
+                    dangerouslySetInnerHTML={{ __html: graphHtml }}
+                    className="w-full min-h-[500px] bg-white rounded-lg shadow-inner p-4"
+                  />
                 ) : (
-                  <p>Loading graph...</p>
-                )}
+                  <div className="flex justify-center items-center h-64">
+                    <p className="text-gray-500">Loading advanced graph visualization...</p>
+                  </div>
+                )} */}
+                <div 
+                    // ref={graphContainerRef} 
+                    dangerouslySetInnerHTML={{ __html: graphHtml }}
+                    className="w-full min-h-[500px] bg-white rounded-lg shadow-inner p-4"
+                  />
               </CardContent>
             </Card>
           </TabsContent>

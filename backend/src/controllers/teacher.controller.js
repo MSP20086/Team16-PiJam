@@ -13,7 +13,7 @@ import {Student} from "../models/student.model.js";
 // get insights remaining
 export const getInsightsOfSpecificChallenge = asyncHandler(async (req, res) => {
   const { challengeId } = req.params;
-
+  // console.log(challengeId)
   if (!mongoose.Types.ObjectId.isValid(challengeId)) {
     throw new ApiError(400, "Invalid Challenge ID");
   }
@@ -21,20 +21,20 @@ export const getInsightsOfSpecificChallenge = asyncHandler(async (req, res) => {
   const submissions = await Submission.find({
     challenge_id: challengeId,
   }).populate("challenge_id");
-
+  // console.log(submissions)
   const submissionsExtractedText = submissions.map(
     (submission) => submission.extracted_text
   );
 
 
-  const flaskEndPoint = "https://ab62-34-126-131-38.ngrok-free.app/api/analyze_text";
+  const flaskEndPoint = "https://7f22-34-125-27-97.ngrok-free.app/api/analyze_text";
   try {
     const insightsResponse = await axios.post(
       flaskEndPoint,
       submissions, 
       { headers: { "Content-Type": "application/json" } }
     );
-    console.log(insightsResponse);
+    // console.log(insightsResponse);
     const insights = insightsResponse.data;
 
     return res.status(201).json(new ApiResponse(201, insights));

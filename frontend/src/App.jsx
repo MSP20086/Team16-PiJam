@@ -8,6 +8,7 @@ import ChallengeDetail from './pages/ChallengeDetail';
 import StudentDashboard from './pages/StudentDashboard';
 import CreateChallengePage from "./pages/CreateChallenge"
 import TeacherInsightsDashboard from "./pages/TeacherInsightsDashboard";
+import ChallengesInsightsPage from "./pages/ChallengeInsights";
 function App() {
   return (
     <>
@@ -23,6 +24,7 @@ function App() {
         <Route path="/challenges/:id" element={<ChallengeDetail />} />
         <Route path="/challenges/new" element={<CreateChallengePage />} />
         <Route path="/challenges/:id/insights" element={<TeacherInsightsDashboard />} />
+        <Route path="/challenges/insights" element={<ChallengesInsightsPage />} />
         <Route path="*" element={<TeacherChallengesPage />} />
       </Routes>
     </Router>

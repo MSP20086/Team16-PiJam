@@ -32,7 +32,7 @@ const cardVariants = {
 
 const ITEMS_PER_PAGE = 6;
 
-const TeacherChallengesPage = () => {
+const ChallengesInsightsPage = () => {
   const [challenges, setChallenges] = useState([]);
   const [filteredChallenges, setFilteredChallenges] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -139,7 +139,7 @@ const TeacherChallengesPage = () => {
 
   // Handle view details
   const handleViewDetails = (challengeId) => {
-    navigate(`/teacher/challenges/${challengeId}/submissions`);
+    navigate(`/challenges/${challengeId}/insights`);
   };
 
   // Handle create new challenge
@@ -362,7 +362,7 @@ const TeacherChallengesPage = () => {
                   onClick={() => handleViewDetails(challenge._id)}
                   className="mt-5 w-full flex items-center justify-center py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
                 >
-                  View Submissions
+                  View Insights
                   <ChevronRight className="h-4 w-4 ml-1" />
                 </button>
               </div>
@@ -537,4 +537,4 @@ const TeacherChallengesPage = () => {
   );
 };
 
-export default TeacherChallengesPage;
+export default ChallengesInsightsPage;

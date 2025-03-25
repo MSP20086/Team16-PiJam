@@ -35,7 +35,8 @@ export const getChallengeById = asyncHandler(async (req, res) => {
 
 export const submitChallenge = asyncHandler(async (req, res) => {
   const { challengeId } = req.params;
-  const student_id = "65fdc2a1e4b0c2e3d1a7b123";
+  const student_id = "67e1973b4a13902469e11ddc";
+  const user_id = "65e123456789abcd12345679";
   
   const challenge = await Challenge.findById(challengeId).populate("rubric_id");
   if (!challenge) {
@@ -65,7 +66,7 @@ export const submitChallenge = asyncHandler(async (req, res) => {
   }
 
   const submissionLocalPath = req.file?.path;
-  console.log(submissionLocalPath);
+  // console.log(submissionLocalPath);
 
   if (!submissionLocalPath) {
     throw new ApiError(400, "Submission file is necessary");
@@ -83,7 +84,7 @@ export const submitChallenge = asyncHandler(async (req, res) => {
   const file_path = submissionCloudPath.url;
 
   const submission = await Submission.create({
-    student_id,
+    student_id:user_id,
     challenge_id: challengeId,
     file_path: file_path,
     extracted_text: "",
@@ -99,7 +100,7 @@ export const submitChallenge = asyncHandler(async (req, res) => {
   challenge.submissions.push(submission._id);
   await challenge.save();
 
-  console.log(rubric);
+  // console.log(rubric);
   const formData = new FormData();
   formData.append("file", fs.createReadStream(submissionLocalPath));
   formData.append("problem_statement", problem_statement);
@@ -107,7 +108,8 @@ export const submitChallenge = asyncHandler(async (req, res) => {
 
   // url will change
   try {
-    const evaluationResponse = await axios.post("https://7c80-34-125-196-67.ngrok-free.app/evaluate", formData, {
+    console.log("sending request to evaluation API");
+    const evaluationResponse = await axios.post("https://7f22-34-125-27-97.ngrok-free.app/evaluate", formData, {
       headers: formData.getHeaders ? formData.getHeaders() : { 'Content-Type': 'multipart/form-data' },
     });
     console.log("Evaluation response:", evaluationResponse.data);

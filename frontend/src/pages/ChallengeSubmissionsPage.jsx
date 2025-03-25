@@ -805,7 +805,7 @@ const ChallengeSubmissionsPage = () => {
                                         {key}
                                       </div>
                                       <div className="font-bold text-slate-700">
-                                        {Math.round(value * 100)}/100
+                                        {Math.round(value)}/100
                                       </div>
                                       <div className="w-full bg-slate-200 rounded-full h-2 mt-1.5">
                                         <div
@@ -816,7 +816,7 @@ const ChallengeSubmissionsPage = () => {
                                                 ? "bg-amber-500" 
                                                 : "bg-rose-500"
                                           }`}
-                                          style={{ width: `${value * 100}%` }}
+                                          style={{ width: `${value }%` }}
                                         ></div>
                                       </div>
                                     </div>

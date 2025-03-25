@@ -4,11 +4,11 @@ function StudentDashboard() {
   const [submissions, setSubmissions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
+  const studentId = "67e195e64a13902469e11dd9"; // Replace with actual student ID
   useEffect(() => {
     const fetchSubmissions = async () => {
       try {
-        const response = await fetch("http://localhost:5000/api/student/challenges/submissions?student_id=65fdc2a1e4b0c2e3d1a7b123");
+        const response = await fetch(`http://localhost:5000/api/student/challenges/submissions?student_id=${studentId}`);
         
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
@@ -83,10 +83,13 @@ function StudentDashboard() {
               </div>
               <div className="mt-4 md:mt-0">
                 <a className="inline-flex items-center px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition duration-300" href="/challenges">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  {/* <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                  </svg>
-                  New Challenge
+                  </svg> */}
+                  Browse Challenges
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                </svg>
                 </a>
               </div>
             </div>
@@ -175,12 +178,12 @@ function StudentDashboard() {
               <p className="text-gray-500 max-w-md mx-auto mb-4">
                 Start your journey by submitting your first challenge solution!
               </p>
-              <button className="inline-flex items-center px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition duration-300">
+              <a className="inline-flex items-center px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition duration-300" href="/challenges">
                 Browse Challenges
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
                 </svg>
-              </button>
+              </a>
             </div>
           )}
         </div>
