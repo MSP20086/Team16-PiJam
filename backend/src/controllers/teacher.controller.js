@@ -27,7 +27,7 @@ export const getInsightsOfSpecificChallenge = asyncHandler(async (req, res) => {
   }
 
   // Flask API Endpoint
-  const flaskEndPoint = "https://7615-34-125-182-213.ngrok-free.app/api/analyze_text";
+  const flaskEndPoint = "https://0571-34-125-182-213.ngrok-free.app/api/analyze_text";
 
   // Initialize score distribution bins
   let scoreDistribution = {
@@ -62,7 +62,7 @@ export const getInsightsOfSpecificChallenge = asyncHandler(async (req, res) => {
       challenge_id: challengeId,
       submissions: submissions.map((sub) => ({
         submission_id: sub._id,
-        extracted_text: sub.extracted_text || "", // Ensure text exists
+        extracted_text: sub.summary || "", // Ensure text exists
         classification: sub.classification || "unknown",
         status: sub.status || "unknown",
         student_name: sub.student_id?.name || "Unknown", // Extract student name

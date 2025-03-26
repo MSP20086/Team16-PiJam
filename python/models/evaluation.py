@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-import google.generativeai as genai
+from google import genai
 from pydantic import BaseModel
 from typing import List
 import json
@@ -13,7 +13,6 @@ class Evaluation(BaseModel):
     justification: str
 
 class EvaluationResponse(BaseModel):
-    summary: str
     evaluation: List[Evaluation]
     final_score: float
 
@@ -21,20 +20,26 @@ def evaluate_solution(problem_statement: str, solution: str, rubric: List[dict],
     client = genai.Client(api_key=api_key)
     
     prompt = f"""
-    You are an advanced text evaluator. Given a problem statement, a solution, and a rubric, you will:
-    1. Provide a concise summary of the solution.
-    2. Evaluate the solution based on each rubric criterion, providing both scores (0-10) and justifications.
+    You are an advanced solution evaluator. Your task is to evaluate how effectively a solution addresses a specific problem statement.
+    
+    Evaluate HOW WELL the proposed solution solves the problem described in the problem statement.
     
     Problem Statement:
     {problem_statement}
     
-    Solution:
+    Proposed Solution:
     {solution}
     
-    Rubric:
+    Evaluation Rubric:
     """
     for criterion in rubric:
         prompt += f"- {criterion['parameter']} ({criterion['weight']}) → {criterion['description']}\n"
+    
+    prompt += """
+        You are an advanced text evaluator. Given a problem statement, a solution, and a rubric, you will:
+        1. Provide a concise summary of the solution.
+        2. Evaluate the solution based on each rubric criterion, providing both scores (0-100) and justifications.
+    """
 
     response_schema = EvaluationResponse.schema()
     

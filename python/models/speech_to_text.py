@@ -13,7 +13,8 @@ device = "cuda:0" if torch.cuda.is_available() else "cpu"
 torch_dtype = torch.float16 if torch.cuda.is_available() else torch.float32
 print(f"Using device: {device}")
 
-model_id = "openai/whisper-tiny.en"
+# Upgrade to larger model for better accuracy
+model_id = "openai/whisper-base.en"
 processor = AutoProcessor.from_pretrained(model_id)
 model = AutoModelForSpeechSeq2Seq.from_pretrained(
     model_id,
@@ -35,30 +36,37 @@ asr_pipe = pipeline(
 def process_audio(file, problem_statement, rubric):
     try:
         audio_bytes = file.read()
-        audio, sr = librosa.load(io.BytesIO(audio_bytes), sr=16000, mono=True, duration=300)
+        audio, sr = librosa.load(io.BytesIO(audio_bytes), 
+                                sr=16000, 
+                                mono=True,
+                                res_type='soxr_hq')
+        audio = librosa.util.normalize(audio)
     except Exception as e:
         return jsonify({"error": f"Audio processing failed: {str(e)}"}), 400
 
     chunk_size = 30 * sr
-    chunks = []
-    for i in range(0, len(audio), chunk_size):
-        chunk = audio[i:i+chunk_size]
-        if len(chunk) < chunk_size:
-            chunk = np.pad(chunk, (0, chunk_size - len(chunk)), mode='constant')
-        chunks.append(chunk)
+    chunks = [audio[i:i+chunk_size] for i in range(0, len(audio), chunk_size)]
 
     if not chunks:
         return jsonify({"error": "Empty audio file"}), 400
 
     with torch.no_grad():
         try:
-            results = asr_pipe(chunks, batch_size=8 if torch.cuda.is_available() else 2, return_timestamps=False)
+            # Remove language/task parameters for English-only model
+            results = asr_pipe(
+                chunks,
+                batch_size=4 if torch.cuda.is_available() else 1,
+                return_timestamps=False
+            )
         except RuntimeError as e:
             if 'CUDA out of memory' in str(e):
                 return jsonify({"error": "GPU memory exhausted, try shorter audio"}), 413
             raise e
 
-    transcription = " ".join([result["text"] for result in results])
+    transcription = " ".join([result["text"].strip() for result in results])
+    transcription = transcription.replace("...", ".")
+    transcription = " ".join(transcription.split())
+    
     summary = summarize_text(transcription)
     
     api_key = os.getenv("GEMINI_API_KEY")
@@ -70,7 +78,7 @@ def process_audio(file, problem_statement, rubric):
     )
 
     return {
-        "transcription": transcription.strip(),
+        "transcription": transcription,
         "summary": summary.strip(),
         "evaluation": evaluation_result
     }

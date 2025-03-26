@@ -86,7 +86,7 @@ export const submitChallenge = asyncHandler(async (req, res) => {
     formData.append("rubric", JSON.stringify(challenge.rubric_id.criteria));
 
     const evaluationResponse = await axios.post(
-      "https://7615-34-125-182-213.ngrok-free.app/evaluate",
+      "https://0571-34-125-182-213.ngrok-free.app/evaluate",
       formData,
       { headers: formData.getHeaders() }
     );
