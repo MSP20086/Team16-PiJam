@@ -86,7 +86,7 @@ export const submitChallenge = asyncHandler(async (req, res) => {
     formData.append("rubric", JSON.stringify(challenge.rubric_id.criteria));
 
     const evaluationResponse = await axios.post(
-      "https://0571-34-125-182-213.ngrok-free.app/evaluate",
+      "https://b007-35-198-236-138.ngrok-free.app/evaluate",
       formData,
       { headers: formData.getHeaders() }
     );
@@ -100,6 +100,13 @@ export const submitChallenge = asyncHandler(async (req, res) => {
         }
       });
     }
+    let final_score = evalData.evaluation.final_score || 0;
+    let classification = "low";
+    if (final_score >= challenge.criteria.high) {
+      classification = "high";
+    } else if (final_score >= challenge.criteria.mid) {
+      classification = "medium";
+    }
 
     const updatedSubmission = await Submission.findByIdAndUpdate(
       submission._id,
@@ -109,6 +116,7 @@ export const submitChallenge = asyncHandler(async (req, res) => {
         summary: evalData.summary || "",
         final_score: evalData.evaluation.final_score || 0,
         status: "pending",
+        classification,
       },
       { new: true }
     );

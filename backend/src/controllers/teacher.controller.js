@@ -27,7 +27,7 @@ export const getInsightsOfSpecificChallenge = asyncHandler(async (req, res) => {
   }
 
   // Flask API Endpoint
-  const flaskEndPoint = "https://0571-34-125-182-213.ngrok-free.app/api/analyze_text";
+  const flaskEndPoint = "https://b007-35-198-236-138.ngrok-free.app/api/analyze_text";
 
   // Initialize score distribution bins
   let scoreDistribution = {

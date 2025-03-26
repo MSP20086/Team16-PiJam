@@ -218,7 +218,7 @@ const TeacherInsightsDashboard = () => {
                 <CardContent>
                   <div className="h-96">
                     {insightsData?.word_proportions ? (
-                      <WordProportionsChart wordProportionsData={insightsData.word_proportions} />
+                      <WordProportionsChart wordData={insightsData.word_proportions} />
                     ) : (
                       <div className="flex items-center justify-center h-full text-gray-500">
                         Loading word proportions...
