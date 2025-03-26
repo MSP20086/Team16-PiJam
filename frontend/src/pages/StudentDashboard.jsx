@@ -1,14 +1,23 @@
 import { useEffect, useState } from "react";
+import { useAuthContext } from "../hooks/useAuthContext";
 
 function StudentDashboard() {
+  const { user } = useAuthContext();
+  const userId = user?._id;
   const [submissions, setSubmissions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const studentId = "67e195e64a13902469e11dd9"; // Replace with actual student ID
   useEffect(() => {
     const fetchSubmissions = async () => {
       try {
-        const response = await fetch(`http://localhost:5000/api/student/challenges/submissions?student_id=${studentId}`);
+        const response = await fetch(`http://localhost:5000/api/student/challenges/submissions?student_id=${userId}`,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${user.token}`,
+            }
+          },
+        );
         
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
@@ -152,7 +161,7 @@ function StudentDashboard() {
                     <tr key={submission._id} className="border-t border-gray-100 hover:bg-gray-50 transition duration-150">
                       <td className="py-4 px-6 text-gray-800">{index + 1}</td>
                       <td className="py-4 px-6">
-                        <div className="font-medium text-gray-800">{submission.challenge?.title || "Unknown Challenge"}</div>
+                        <div className="font-medium text-gray-800">{submission.challenge_id?.title || "Unknown Challenge"}</div>
                       </td>
                       <td className="py-4 px-6 text-gray-600">
                         {new Date(submission.createdAt).toLocaleDateString()}

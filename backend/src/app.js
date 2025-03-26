@@ -3,6 +3,7 @@ import cors from "cors"
 import cookieParser from "cookie-parser"
 import studentRoutes from "./routes/student.routes.js";
 import teacherRouter from "./routes/teacher.routes.js"
+import userRouter from "./routes/user.routes.js"
 
 const app = express()
 
@@ -18,7 +19,7 @@ app.use(cookieParser())
 
 
 
-
+app.use("/api/user", userRouter)
 app.use("/api/teacher", teacherRouter)
 app.use("/api/student", studentRoutes);
 

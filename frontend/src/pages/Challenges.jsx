@@ -5,6 +5,7 @@ import { format, isPast, isFuture, differenceInDays } from "date-fns";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
+import { useAuthContext } from "../hooks/useAuthContext";
 // Animation variants
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -33,6 +34,7 @@ const cardVariants = {
 const ITEMS_PER_PAGE = 6;
 
 const Challenges = () => {
+  const { user } = useAuthContext();
   const [challenges, setChallenges] = useState([]);
   const [filteredChallenges, setFilteredChallenges] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -49,14 +51,19 @@ const Challenges = () => {
     const fetchChallenges = async () => {
       setLoading(true);
       try {
-        const response = await axios.get('http://localhost:5000/api/teacher/challenges');
+        const response = await axios.get('http://localhost:5000/api/student/challenges',{
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            "Authorization": `Bearer ${user.token}`,
+          }
+        });
         const { data } = response.data;
         setChallenges(data);
         setFilteredChallenges(data);
       } catch (error) {
         console.error('Error fetching challenges:', error);
       } finally {
-        setTimeout(() => setLoading(false), 300); // Small delay for smoother transition
+        setTimeout(() => setLoading(false), 300);
       }
     };
     

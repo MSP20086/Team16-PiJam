@@ -8,44 +8,85 @@ import { Submission } from "../models/submission.model.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import axios from "axios";
 import { User } from "../models/user.model.js";
-import {Student} from "../models/student.model.js";
-// display charts, analytics remaining
-// get insights remaining
+
 export const getInsightsOfSpecificChallenge = asyncHandler(async (req, res) => {
   const { challengeId } = req.params;
-  // console.log(challengeId)
+
+  // Validate challengeId
   if (!mongoose.Types.ObjectId.isValid(challengeId)) {
     throw new ApiError(400, "Invalid Challenge ID");
   }
 
-  const submissions = await Submission.find({
-    challenge_id: challengeId,
-  }).populate("challenge_id");
-  // console.log(submissions)
-  const submissionsExtractedText = submissions.map(
-    (submission) => submission.extracted_text
-  );
+  // Fetch submissions for the given challenge
+  const submissions = await Submission.find({ challenge_id: challengeId })
+    .populate("challenge_id")
+    .populate("student_id"); // Populate student info
 
+  if (!submissions.length) {
+    throw new ApiError(404, "No submissions found for this challenge");
+  }
 
-  const flaskEndPoint = "https://7f22-34-125-27-97.ngrok-free.app/api/analyze_text";
+  // Flask API Endpoint
+  const flaskEndPoint = "https://7615-34-125-182-213.ngrok-free.app/api/analyze_text";
+
+  // Initialize score distribution bins
+  let scoreDistribution = {
+    "0-10": 0,
+    "10-20": 0,
+    "20-30": 0,
+    "30-40": 0,
+    "40-50": 0,
+    "50-60": 0,
+    "60-70": 0,
+    "70-80": 0,
+    "80-90": 0,
+    "90-100": 0,
+  };
+
+  // Calculate score distribution
+  submissions.forEach((sub) => {
+    const score = sub.final_score ?? 0; // Use final_score, default to 0 if missing
+    const rangeKey = Object.keys(scoreDistribution).find((range) => {
+      const [min, max] = range.split("-").map(Number);
+      return score >= min && score <= max;
+    });
+
+    if (rangeKey) {
+      scoreDistribution[rangeKey] += 1;
+    }
+  });
+
   try {
-    const insightsResponse = await axios.post(
-      flaskEndPoint,
-      submissions, 
-      { headers: { "Content-Type": "application/json" } }
-    );
-    // console.log(insightsResponse);
+    // Prepare data for Flask API
+    const payload = {
+      challenge_id: challengeId,
+      submissions: submissions.map((sub) => ({
+        submission_id: sub._id,
+        extracted_text: sub.extracted_text || "", // Ensure text exists
+        classification: sub.classification || "unknown",
+        status: sub.status || "unknown",
+        student_name: sub.student_id?.name || "Unknown", // Extract student name
+      })),
+    };
+
+    // Send request to Flask API
+    const insightsResponse = await axios.post(flaskEndPoint, payload, {
+      headers: { "Content-Type": "application/json" },
+    });
+
+    // Get insights from response
     const insights = insightsResponse.data;
 
-    return res.status(201).json(new ApiResponse(201, insights));
+    // Add score distribution to insights
+    insights.score_distribution = scoreDistribution;
+
+    return res.status(201).json(new ApiResponse(201, insights, "Insights generated successfully"));
   } catch (error) {
-    console.error(
-      "Error fetching insights:",
-      error.response?.data || error.message
-    );
+    console.error("Error fetching insights:", error.response?.data || error.message);
     throw new ApiError(500, "Error occurred while generating insights");
   }
 });
+
 
 export const getChallenges = asyncHandler(async (req, res) => {
   const challenges = await Challenge.find();
@@ -180,7 +221,7 @@ export const evaluateSubmission = asyncHandler(async (req, res) => {
   }
   let final_score = 0;
   rubric.criteria.forEach(({ parameter, weight }) => {
-    final_score += (score[parameter] || 0) * weight;
+    final_score += (score[parameter] || 0) * weight/100;
   });
   let classification = "low";
   if (final_score >= challenge.criteria.high) {

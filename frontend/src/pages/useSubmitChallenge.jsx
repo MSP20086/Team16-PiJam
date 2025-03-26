@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { useAuthContext } from "../hooks/useAuthContext";
 
 const useSubmitChallenge = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
-
+  const { user } = useAuthContext();
   const submitChallenge = async ({
     title,
     description,
@@ -40,7 +41,8 @@ const useSubmitChallenge = () => {
       // Make the API request
       const response = await axios.post('http://localhost:5000/api/teacher/challenge/create', formData, {
         headers: {
-          'Content-Type': 'multipart/form-data'
+          'Content-Type': 'multipart/form-data',
+          "Authorization": `Bearer ${user.token}`,
         }
       });
       console.log(formData)

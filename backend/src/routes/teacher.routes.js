@@ -9,16 +9,22 @@ import {
   getInsightsOfSpecificChallenge,
 } from "../controllers/teacher.controller.js";
 import { upload } from "../middlewares/multer.middlewares.js";
+import requireAuth from "../middlewares/auth.middleware.js";
 
 const router = Router();
 
+router.use(requireAuth); 
+const requireTeacherRole = (req, res, next) => {
+  if (req.user.role !== "teacher") {
+    return res.status(403).json({ error: "Access denied. Only teachers can perform this action." });
+  }
+  next();
+};
+router.use(requireTeacherRole); 
+
 router.get("/challenges", getChallenges);
-// router.post("/challenge/create", createChallenge);
 router.route("/challenge/create").post(
-  upload.fields([
-    // the name property shall match the form object property from frontend
-    { name: "refMaterials" },
-  ]),
+  upload.fields([{ name: "refMaterials" }]),
   createChallenge
 );
 router.get("/:challengeId/submissions", getSubmissions);

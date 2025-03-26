@@ -2,7 +2,9 @@ import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
+import { useAuthContext } from "../hooks/useAuthContext";
 function ChallengeDetail() {
+  const { user } = useAuthContext();
   const { id } = useParams();
   const [challenge, setChallenge] = useState(null);
   const [file, setFile] = useState(null);
@@ -15,7 +17,11 @@ function ChallengeDetail() {
     const fetchChallenge = async () => {
       setLoading(true);
       try {
-        const response = await fetch(`http://localhost:5000/api/student/challenges/${id}`);
+        const response = await fetch(`http://localhost:5000/api/student/challenges/${id}`,{
+          headers: {
+            "Authorization": `Bearer ${user.token}`,
+          },
+        });
         if (!response.ok) throw new Error("Failed to fetch challenge details");
 
         const data = await response.json();
@@ -147,6 +153,9 @@ function ChallengeDetail() {
         method: "POST",
         body: formData,
         credentials: "include",
+        headers: {
+          "Authorization": `Bearer ${user.token}`,
+        },
       });
       console.log(response)
   

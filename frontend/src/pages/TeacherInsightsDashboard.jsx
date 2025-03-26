@@ -15,10 +15,14 @@ import {
   FileText, 
   Globe 
 } from 'lucide-react';
+import { useAuthContext } from '../hooks/useAuthContext';
+import WordProportionsChart from './word_proportions';
+import ScoreDistributionChart from './score_distribution';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
 const TeacherInsightsDashboard = () => {
+  const { user } = useAuthContext();
   const [insightsData, setInsightsData] = useState(null);
   const [graphHtml, setGraphHtml] = useState('');
   const [loadGraph, setLoadGraph] = useState(false); // Lazy load graph
@@ -30,7 +34,12 @@ const TeacherInsightsDashboard = () => {
   useEffect(() => {
     async function fetchInsights() {
       try {
-        const response = await axios.get(`http://localhost:5000/api/teacher/${id}/insights`);
+        const response = await axios.get(`http://localhost:5000/api/teacher/${id}/insights`, {
+          headers: {
+            'Authorization': `Bearer ${user.token}`,
+          },
+        });
+        
         console.log('Fetched insights:', response.data);
         setInsightsData(response.data.data);
         setGraphHtml(response.data.data.graph_html || '');
@@ -44,34 +53,34 @@ const TeacherInsightsDashboard = () => {
     fetchInsights();
   }, [id]);
 
-  // useEffect(() => {
-  //   if (loadGraph && graphHtml && graphContainerRef.current) {
-  //     try {
-  //       const container = graphContainerRef.current;
-  //       container.innerHTML = graphHtml;
+  useEffect(() => {
+    if (loadGraph && graphHtml && graphContainerRef.current) {
+      try {
+        const container = graphContainerRef.current;
+        container.innerHTML = graphHtml;
 
-  //       // Safely execute scripts
-  //       const scripts = container.getElementsByTagName('script');
-  //       Array.from(scripts).forEach((oldScript) => {
-  //         const newScript = document.createElement('script');
-  //         newScript.text = oldScript.innerHTML;
-  //         Object.values(oldScript.attributes).forEach((attr) =>
-  //           newScript.setAttribute(attr.name, attr.value)
-  //         );
-  //         oldScript.parentNode.replaceChild(newScript, oldScript);
-  //       });
-  //     } catch (error) {
-  //       console.error('Error rendering graph:', error);
-  //       setError('Failed to render graph. Please check the data source.');
-  //     }
-  //   }
+        // Find and execute scripts manually
+        const scripts = container.getElementsByTagName("script");
+        Array.from(scripts).forEach((oldScript) => {
+          const newScript = document.createElement("script");
+          newScript.text = oldScript.innerHTML;
+          Array.from(oldScript.attributes).forEach((attr) =>
+            newScript.setAttribute(attr.name, attr.value)
+          );
+          oldScript.parentNode.replaceChild(newScript, oldScript);
+        });
+      } catch (error) {
+        console.error("Error rendering graph:", error);
+        setError("Failed to render graph. Please check the data source.");
+      }
+    }
 
-  //   return () => {
-  //     if (graphContainerRef.current) {
-  //       graphContainerRef.current.innerHTML = ''; // Cleanup
-  //     }
-  //   };
-  // }, [graphHtml, loadGraph]);
+    return () => {
+      if (graphContainerRef.current) {
+        graphContainerRef.current.innerHTML = ""; // Cleanup
+      }
+    };
+  }, [graphHtml, loadGraph]);
 
   const submissionStatusData = insightsData
     ? Object.entries(insightsData.selection_status).map(([key, value]) => ({
@@ -90,13 +99,6 @@ const TeacherInsightsDashboard = () => {
         name: key.charAt(0).toUpperCase() + key.slice(1),
         value,
       }))
-    : [];
-
-  const thoughtClustersData = insightsData
-    ? insightsData.thought_clusters.map((count, index) => ({
-        cluster: `Cluster ${index+1}`,
-        count,
-      })).filter(item => item.count > 0)
     : [];
 
   const handleTabChange = (value) => {
@@ -142,7 +144,6 @@ const TeacherInsightsDashboard = () => {
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="content">Content Analysis</TabsTrigger>
             <TabsTrigger value="performance">Performance</TabsTrigger>
-            <TabsTrigger value="clustering">Student Clustering</TabsTrigger>
             <TabsTrigger value="graph">Graph Visualization</TabsTrigger>
           </TabsList>
 
@@ -193,8 +194,14 @@ const TeacherInsightsDashboard = () => {
                   <CardDescription>Distribution of scores across all submissions</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="h-64 flex items-center justify-center">
-                    <p>Data not available</p>
+                  <div className="h-64">
+                    {insightsData?.score_distribution ? (
+                      <ScoreDistributionChart scoreDistributionData={insightsData.score_distribution} />
+                    ) : (
+                      <div className="flex items-center justify-center h-full text-gray-500">
+                        Loading score distribution...
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -202,25 +209,25 @@ const TeacherInsightsDashboard = () => {
           </TabsContent>
 
           <TabsContent value="content" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Common Topics</CardTitle>
-                <CardDescription>List of most common topics in student submissions</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="p-4">
-                  {insightsData && insightsData.common_topics ? (
-                    <ul className="list-disc pl-5">
-                      {insightsData.common_topics.map((topic, index) => (
-                        <li key={index} className="text-gray-700">{topic}</li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p>Loading common topics...</p>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Word Proportions Analysis</CardTitle>
+                  <CardDescription>Breakdown of word usage in student submissions</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-96">
+                    {insightsData?.word_proportions ? (
+                      <WordProportionsChart wordProportionsData={insightsData.word_proportions} />
+                    ) : (
+                      <div className="flex items-center justify-center h-full text-gray-500">
+                        Loading word proportions...
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
 
           <TabsContent value="performance" className="space-y-6">
@@ -263,34 +270,6 @@ const TeacherInsightsDashboard = () => {
               </CardContent>
             </Card>
           </TabsContent>
-
-          <TabsContent value="clustering" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Thought Clusters Distribution</CardTitle>
-                <CardDescription>Distribution of thought clusters across student submissions</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="h-64">
-                  {thoughtClustersData.length > 0 ? (
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={thoughtClustersData}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="cluster" />
-                        <YAxis />
-                        <Tooltip />
-                        <Legend />
-                        <Bar dataKey="count" fill="#8884d8" />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  ) : (
-                    <p>Loading clustering data...</p>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
           <TabsContent value="graph" className="space-y-6">
             <Card className="bg-white/80 backdrop-blur-lg shadow-xl">
               <CardHeader>
@@ -303,22 +282,18 @@ const TeacherInsightsDashboard = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {/* {loadGraph && graphHtml ? (
-                  <div 
-                    // ref={graphContainerRef} 
-                    dangerouslySetInnerHTML={{ __html: graphHtml }}
+                {graphHtml ? (
+                  <iframe
+                    srcDoc={graphHtml}
                     className="w-full min-h-[500px] bg-white rounded-lg shadow-inner p-4"
+                    sandbox="allow-scripts allow-same-origin"
                   />
                 ) : (
-                  <div className="flex justify-center items-center h-64">
-                    <p className="text-gray-500">Loading advanced graph visualization...</p>
-                  </div>
-                )} */}
-                <div 
-                    // ref={graphContainerRef} 
-                    dangerouslySetInnerHTML={{ __html: graphHtml }}
+                  <div
+                    ref={graphContainerRef}
                     className="w-full min-h-[500px] bg-white rounded-lg shadow-inner p-4"
                   />
+                )}
               </CardContent>
             </Card>
           </TabsContent>

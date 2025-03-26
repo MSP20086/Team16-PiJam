@@ -392,14 +392,18 @@ import {
   FaChevronDown,
   FaChevronUp,
   FaMedal,
-  FaFilter
+  FaFilter,
+  FaChartBar  
 } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 import Button from "../components/Button";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import { Award } from "lucide-react";
+import { useAuthContext } from "../hooks/useAuthContext";
+
 const ChallengeSubmissionsPage = () => {
+  const { user } = useAuthContext();
   const [sortOrder, setSortOrder] = useState("desc");
   const [filter, setFilter] = useState("all");
   const [activeSubmission, setActiveSubmission] = useState(null);
@@ -427,15 +431,25 @@ const ChallengeSubmissionsPage = () => {
 
   useEffect(() => {
     const fetchData = async () => {
+      if (!user || !user.token) {
+        setError("You must be logged in");
+        return;
+      }
+  
       try {
         setLoading(true);
-        axios.get(
-          `http://localhost:5000/api/teacher/${challengeId}/submissions`
-        ).then((response) => {
-          console.log(response.data)
-          setSubmissions(response.data.data.submissions);
-          setChallenge(response.data.data.challenge);
-        })
+        const response = await axios.get(
+          `http://localhost:5000/api/teacher/${challengeId}/submissions`,
+          {
+            headers: {
+              Authorization: `Bearer ${user.token}`, // ✅ Send user token
+            },
+          }
+        );
+  
+        console.log(response.data);
+        setSubmissions(response.data.data.submissions);
+        setChallenge(response.data.data.challenge);
       } catch (err) {
         setError(err.response?.data?.message || "Failed to fetch data");
         console.error("Error fetching data:", err);
@@ -443,9 +457,11 @@ const ChallengeSubmissionsPage = () => {
         setLoading(false);
       }
     };
-
-    fetchData();
-  }, [challengeId]);
+  
+    if (challengeId) {
+      fetchData();
+    }
+  }, [challengeId, user]); 
 
   const sortedSubmissions =
     submissions.length > 0
@@ -511,6 +527,10 @@ const ChallengeSubmissionsPage = () => {
     navigate(`/teacher/submissions/${submissionId}`);
   };
 
+  const viewInsights = () => {
+    navigate(`/challenges/${challengeId}/insights`);
+  };
+
   // Loading state with subtle animation
   if (loading) {
     return (
@@ -563,17 +583,26 @@ const ChallengeSubmissionsPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 py-8">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6">
-        <a
-                        href="/teacher/challenges"
-                        className={`block px-3 py-2 rounded-md text-base font-medium  'hover:bg-indigo-100'}`}
-                      >
-                        <div className="flex items-center">
-                          <Award className={`mr-2 h-5 w-5 text-yellow-500`} /> Back to Quests
-                        </div>
-                      </a>
-        {/* Header with clean design */}
+      <div className="min-h-screen bg-slate-50 py-8">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <div className="flex items-center mb-4">
+            <a
+              href="/teacher/challenges"
+              className={`block px-3 py-2 rounded-md text-base font-medium hover:bg-indigo-100`}
+            >
+              <div className="flex items-center">
+                <Award className={`mr-2 h-5 w-5 text-yellow-500`} /> Back to Quests
+              </div>
+            </a>
+            <a
+              onClick={viewInsights}
+              className={`ml-3 block px-3 py-2 rounded-md text-base font-medium hover:bg-indigo-100`}
+            >
+              <div className="flex items-center">
+                <FaChartBar className={`mr-2 h-5 w-5 text-indigo-500`} /> Challenge Insights
+              </div>
+            </a>
+          </div>
         <motion.div 
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}

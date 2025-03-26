@@ -2,45 +2,48 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useParams } from "react-router-dom";
 import { Award } from "lucide-react";
+import { useAuthContext } from "../hooks/useAuthContext";
 
 const SubmissionDetailPage = () => {
   const { submissionId } = useParams();
+  const { user } = useAuthContext(); // Get user from context
   const [submission, setSubmission] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editedScores, setEditedScores] = useState({});
   const [challengeData, setChallengeData] = useState(null);
-  const [user,setUser] = useState(null);
-  // console.log(submission)
-
-  // Fetch submission data on component mount
+  console.log(user)
+  const [curuser, setCuruser] = useState(null);
   useEffect(() => {
     const fetchSubmission = async () => {
       try {
         setLoading(true);
         const response = await axios.get(
-          `http://localhost:5000/api/teacher/submissions/${submissionId}`
+          `http://localhost:5000/api/teacher/submissions/${submissionId}`,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${user.token}`,
+            }
+          },
         );
-        console.log(response.data.data)
+
+
         const submissionData = response.data.data.submission;
         setSubmission(submissionData);
         setChallengeData(response.data.data.challenge);
-        setUser(response.data.data.user);
-        
-        // Initialize scores with AI score categories if teacher scores are empty
+        setCuruser(response.data.data.user);
+
+        // Initialize scores
         const aiScores = submissionData.ai_scores || {};
-        const teacherScores = response.data.data.teacher_scores || {};
-        
-        // Create a default scores object with all categories from AI scores
+        const teacherScores = submissionData.teacher_scores || {};
+
         const defaultScores = {};
-        Object.keys(aiScores).forEach(category => {
-          // Use existing teacher score if available, otherwise use AI score as default
-          defaultScores[category] = teacherScores[category] !== undefined 
-            ? teacherScores[category] 
-            : aiScores[category] || 0;
+        Object.keys(aiScores).forEach((category) => {
+          defaultScores[category] = teacherScores[category] ?? aiScores[category] ?? 0;
         });
-        
+
         setEditedScores(defaultScores);
         setLoading(false);
       } catch (err) {
@@ -49,12 +52,11 @@ const SubmissionDetailPage = () => {
       }
     };
 
-    if (submissionId) {
+    if (submissionId && user) {
       fetchSubmission();
     }
-  }, [submissionId]);
+  }, [submissionId, user]);
 
-  // Convert status to appropriate badge color
   const getStatusColor = (status) => {
     switch (status?.toLowerCase()) {
       case "selected":
@@ -68,18 +70,12 @@ const SubmissionDetailPage = () => {
     }
   };
 
-  // Format the date nicely
   const formatDate = (dateString) => {
     if (!dateString) return "";
     const date = new Date(dateString);
-    return (
-      date.toLocaleDateString() +
-      " at " +
-      date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-    );
+    return date.toLocaleDateString() + " at " + date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   };
 
-  // Handle score changes
   const handleScoreChange = (category, value) => {
     setEditedScores({
       ...editedScores,
@@ -87,28 +83,34 @@ const SubmissionDetailPage = () => {
     });
   };
 
-  // Save edited scores
   const saveScores = async () => {
     try {
       setLoading(true);
-      
-      // Ensure all categories from AI scores are included in edited scores
+
       const aiScores = submission.ai_scores || {};
       const completeScores = { ...editedScores };
-      
-      // Fill in any missing categories
-      Object.keys(aiScores).forEach(category => {
+
+      Object.keys(aiScores).forEach((category) => {
         if (completeScores[category] === undefined) {
           completeScores[category] = aiScores[category] || 0;
         }
       });
-      const status = submission.status || "pending"; 
-      const response = await axios.post("http://localhost:5000/api/teacher/submission/evaluate", {
-        submissionId: submission._id,
-        challengeId: submission.challenge_id,
-        score: completeScores,
-        status: status,
-      });
+
+      const response = await axios.post(
+        "http://localhost:5000/api/teacher/submission/evaluate",
+        {
+          submissionId: submission._id,
+          challengeId: submission.challenge_id,
+          score: completeScores,
+          status: submission.status || "pending",
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${user.token}`,
+          },
+        }
+      );
 
       setSubmission(response.data.data);
       setIsEditing(false);
@@ -119,24 +121,19 @@ const SubmissionDetailPage = () => {
     }
   };
 
-  // Reset to original scores
   const cancelEdit = () => {
-    // Ensure we're resetting to proper teacher scores or default to AI scores
     const aiScores = submission.ai_scores || {};
     const teacherScores = submission.teacher_scores || {};
-    
+
     const resetScores = {};
-    Object.keys(aiScores).forEach(category => {
-      resetScores[category] = teacherScores[category] !== undefined 
-        ? teacherScores[category] 
-        : aiScores[category] || 0;
+    Object.keys(aiScores).forEach((category) => {
+      resetScores[category] = teacherScores[category] ?? aiScores[category] ?? 0;
     });
-    
+
     setEditedScores(resetScores);
     setIsEditing(false);
   };
 
-  // Handle status change
   const handleStatusChange = async (newStatus) => {
     try {
       setSubmission({ ...submission, status: newStatus });
@@ -394,7 +391,7 @@ const SubmissionDetailPage = () => {
               </div>
               <div className="ml-10">
                 <p className="text-lg font-medium text-slate-800">
-                  {user.name || "Student Name Not Available"}
+                  {curuser.name || "Student Name Not Available"}
                 </p>
                 <p className="text-slate-500">
                   Classification:{" "}
@@ -514,10 +511,11 @@ const SubmissionDetailPage = () => {
                 </h2>
               </div>
               <div className="p-5">
-                <div className="h-48 overflow-y-auto bg-slate-50 p-4 rounded-lg text-slate-700">
+                <div className="max-h-48 overflow-y-auto bg-slate-50 p-4 rounded-lg text-slate-700">
                   {submission.summary || "No summary available"}
                 </div>
               </div>
+
             </div>
 
             {/* Status Selector */}
